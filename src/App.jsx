@@ -8,8 +8,14 @@ function App() {
   // Estado para saber qué sección de la app de finanzas está activa
   const [activeTab, setActiveTab] = useState('dashboard');
 
-  // Obtiene el mes actual en español y lo convierte a MAYÚSCULAS
-  const mesActual = new Intl.DateTimeFormat('es-ES', { month: 'long' }).format(new Date()).toUpperCase();
+  // Estado para detectar si es pantalla de celular de manera dinámica
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Estado para el selector de meses en la pestaña de MARIE (Año-Mes)
   const [selectedMonth, setSelectedMonth] = useState(() => {
@@ -22,7 +28,8 @@ function App() {
   // LÓGICA DE SUPABASE (ESTADOS Y FETCHING)
   // =========================================================
   const [productosData, setProductosData] = useState([]); // Datos pestaña ADRIAN
-  const [transactionsData, setTransactionsData] = useState([]); // Datos pestaña MARIE
+  const [transactionsData, setTransactionsData] = useState([]); // Datos pestaña MARIE (Del mes seleccionado)
+  const [allMarieTransactions, setAllMarieTransactions] = useState([]); // HISTÓRICO COMPLETO MARIE
   const [loading, setLoading] = useState(true);
 
   // Estado para el ordenamiento de las tablas
@@ -60,7 +67,7 @@ function App() {
     getProducts();
   }, [activeTab, selectedMonth]);
 
-  // 2. Fetching para pestaña MARIE (Transactions con relación a Buckets y Products)
+  // 2. Fetching para pestaña MARIE (Transactions del mes seleccionado)
   useEffect(() => {
     if (activeTab !== 'transacciones') return;
 
@@ -71,7 +78,6 @@ function App() {
         const primerDia = `${ano}-${mes}-01`;
         const ultimoDia = new Date(ano, mes, 0).toISOString().split('T')[0];
 
-        // Equivalente a los LEFT JOINs en Supabase sintaxis de grafos (.select)
         const { data, error } = await supabase
           .from('transactions')
           .select(`
@@ -90,12 +96,10 @@ function App() {
 
         if (error) throw error;
 
-        // Aplicamos la lógica exacta del CASE WHEN de tu query de Postgres
         const transaccionesProcesadas = (data || []).map(t => {
           const originalAmount = parseFloat(t.amount) || 0;
           return {
             ...t,
-            // Si es 15 queda positivo, si es diferente se multiplica por -1
             amount: t.money_bucket === 15 ? originalAmount : originalAmount * -1,
             money_bucket_name: t.money_buckets?.name || '—',
             product_name: t.products?.name || '—'
@@ -113,14 +117,46 @@ function App() {
     getTransactions();
   }, [activeTab, selectedMonth]);
 
-  // Generar lista de los últimos 6 meses para el Dropdown de Excel
+  // 3. FETCHING HISTÓRICO: Obtiene TODO el universo de transacciones de Marie para balances globales
+  useEffect(() => {
+    if (activeTab !== 'transacciones') return;
+
+    const getAllMarieTransactions = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('transactions')
+          .select('amount, date, money_bucket')
+          .eq('payer_loaner', 7);
+
+        if (error) throw error;
+
+        const procesadas = (data || []).map(t => {
+          const originalAmount = parseFloat(t.amount) || 0;
+          return {
+            ...t,
+            amount: t.money_bucket === 15 ? originalAmount : originalAmount * -1
+          };
+        });
+
+        setAllMarieTransactions(procesadas);
+      } catch (error) {
+        console.error('Error al traer histórico de Marie:', error.message);
+      }
+    };
+
+    getAllMarieTransactions();
+  }, [activeTab]);
+
+  // Generar lista de meses fija que termina en Septiembre de 2027 hacia atrás
   const listaMesesOptions = useMemo(() => {
     const opciones = [];
-    const fecha = new Date();
-    for (let i = 0; i < 12; i++) {
+    const fecha = new Date(2027, 8, 1); 
+    
+    for (let i = 0; i < 24; i++) {
       const y = fecha.getFullYear();
       const m = String(fecha.getMonth() + 1).padStart(2, '0');
       const nombreMes = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(fecha);
+      
       opciones.push({ value: `${y}-${m}`, label: nombreMes.toUpperCase() });
       fecha.setMonth(fecha.getMonth() - 1);
     }
@@ -213,37 +249,88 @@ function App() {
     }, { pagado: 0, porPagar: 0, totalGeneral: 0 });
   }, [productosData]);
 
-  // Total acumulado dinámico exclusivo para la vista MARIE
-  const totalMarieAPagar = useMemo(() => {
+  // =========================================================
+  // LÓGICA DE CÁLCULO DE TOTALES REVISADA (PRECISIÓN POR STRINGS)
+  // =========================================================
+  const metricasMarie = useMemo(() => {
+    const [ano, mes] = selectedMonth.split('-');
+    const primerDiaMesSeleccionado = `${ano}-${mes}-01`;
+    const ultimoDiaNum = new Date(Number(ano), Number(mes), 0).getDate();
+    const ultimoDiaMesSeleccionado = `${ano}-${mes}-${String(ultimoDiaNum).padStart(2, '0')}`;
+
+    return allMarieTransactions.reduce((acc, t) => {
+      const fechaTransaccion = t.date.split('T')[0];
+
+      acc.balanceTotal += t.amount;
+
+      if (fechaTransaccion < primerDiaMesSeleccionado) {
+        acc.balanceAnterior += t.amount;
+      }
+
+      if (fechaTransaccion <= ultimoDiaMesSeleccionado) {
+        acc.balanceTotalALaFecha += t.amount;
+      }
+
+      return acc;
+    }, { balanceTotal: 0, balanceAnterior: 0, balanceTotalALaFecha: 0 });
+  }, [allMarieTransactions, selectedMonth]);
+
+  const balanceDelMesMarie = useMemo(() => {
     return transactionsData.reduce((sum, t) => sum + t.amount, 0);
   }, [transactionsData]);
 
-
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f4f6f8' }}>
+    <div style={{ 
+      display: 'flex', 
+      flexDirection: isMobile ? 'column' : 'row', 
+      minHeight: '100vh', 
+      backgroundColor: '#f4f6f8',
+      paddingBottom: isMobile ? '70px' : '0px' // Espacio para el nav de celular
+    }}>
 
-      {/* Sidebar */}
-      <aside style={{ width: '260px', backgroundColor: '#465c73', padding: '24px', display: 'flex', flexDirection: 'column', boxShadow: '2px 0 8px rgba(0, 0, 0, 0.05)' }}>
-        <div style={{ fontSize: '22px', fontWeight: 'bold', color: '#ffffff', marginBottom: '40px' }}>DINEROS</div>
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <button onClick={() => { setActiveTab('dashboard'); setConfig({ key: null, direction: 'asc' }); }} style={tabButtonStyle(activeTab === 'dashboard')}>ADRIAN</button>
-          <button onClick={() => { setActiveTab('transacciones'); setConfig({ key: null, direction: 'asc' }); }} style={tabButtonStyle(activeTab === 'transacciones')}>MARIE</button>
-          <button onClick={() => setActiveTab('presupuestos')} style={tabButtonStyle(activeTab === 'presupuestos')}>📅 Presupuestos</button>
-          <button onClick={() => setActiveTab('inversiones')} style={tabButtonStyle(activeTab === 'inversiones')}>📈 Inversiones</button>
+      {/* Sidebar (Escritorio) / Navbar (Celular) */}
+      {!isMobile ? (
+        <aside style={{ width: '260px', backgroundColor: '#465c73', padding: '24px', display: 'flex', flexDirection: 'column', boxShadow: '2px 0 8px rgba(0, 0, 0, 0.05)' }}>
+          <div style={{ fontSize: '22px', fontWeight: 'bold', color: '#ffffff', marginBottom: '40px' }}>DINEROS</div>
+          <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <button onClick={() => { setActiveTab('dashboard'); setConfig({ key: null, direction: 'asc' }); }} style={tabButtonStyle(activeTab === 'dashboard')}>ADRIAN</button>
+            <button onClick={() => { setActiveTab('transacciones'); setConfig({ key: null, direction: 'asc' }); }} style={tabButtonStyle(activeTab === 'transacciones')}>MARIE</button>
+            <button onClick={() => setActiveTab('presupuestos')} style={tabButtonStyle(activeTab === 'presupuestos')}>📅 Presupuestos</button>
+            <button onClick={() => setActiveTab('inversiones')} style={tabButtonStyle(activeTab === 'inversiones')}>📈 Inversiones</button>
+          </nav>
+        </aside>
+      ) : (
+        <nav style={{ 
+          position: 'fixed', bottom: 0, left: 0, right: 0, height: '65px', 
+          backgroundColor: '#465c73', display: 'flex', justifyContent: 'space-around', 
+          alignItems: 'center', zIndex: 1000, boxShadow: '0 -2px 10px rgba(0,0,0,0.1)' 
+        }}>
+          <button onClick={() => { setActiveTab('dashboard'); setConfig({ key: null, direction: 'asc' }); }} style={mobileTabButtonStyle(activeTab === 'dashboard')}>ADRIAN</button>
+          <button onClick={() => { setActiveTab('transacciones'); setConfig({ key: null, direction: 'asc' }); }} style={mobileTabButtonStyle(activeTab === 'transacciones')}>MARIE</button>
+          <button onClick={() => setActiveTab('presupuestos')} style={mobileTabButtonStyle(activeTab === 'presupuestos')}>📅 Presup.</button>
+          <button onClick={() => setActiveTab('inversiones')} style={mobileTabButtonStyle(activeTab === 'inversiones')}>📈 Invers.</button>
         </nav>
-      </aside>
+      )}
 
       {/* Main Content */}
-      <main style={{ flex: 1, padding: '40px' }}>
+      <main style={{ flex: 1, padding: isMobile ? '16px' : '40px', width: '100%', boxSizing: 'border-box' }}>
         
-        {/* Header Unificado con Dropdown e Indicadores */}
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', borderBottom: '1px solid #e2e8f0', paddingBottom: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-            <h1 style={{ fontSize: '28px', fontWeight: '600', color: '#1e293b', margin: 0 }}>
-              {activeTab === 'dashboard' ? `ADRIAN - ${mesActual}` : 'MARIE'}
+         {/* Header Unificado */}
+         <header style={{ 
+           display: 'flex', 
+           flexDirection: isMobile ? 'column' : 'row', 
+           justifyContent: 'space-between', 
+           alignItems: isMobile ? 'stretch' : 'center', 
+           marginBottom: '24px', 
+           borderBottom: '1px solid #e2e8f0', 
+           paddingBottom: '16px',
+           gap: '16px'
+         }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px' }}>
+            <h1 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: '600', color: '#1e293b', margin: 0 }}>
+              {activeTab === 'dashboard' ? `ADRIAN` : 'MARIE'}
             </h1>
             
-            {/* Dropdown Minimalista estilo Excel */}
             <select 
               value={selectedMonth} 
               onChange={(e) => setSelectedMonth(e.target.value)}
@@ -255,56 +342,97 @@ function App() {
             </select>
           </div>
 
-          {/* Esquina superior derecha: Total condicional según pestaña */}
-          <div>
-            {activeTab === 'transacciones' && !loading && (
-              <div style={{ textAlign: 'right', backgroundColor: '#ffffff', padding: '10px 20px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>
-                  Total Balance Marie
-                </span>
-                <span style={{ color: totalMarieAPagar >= 0 ? '#15803d' : '#b91c1c', fontSize: '20px', fontWeight: '800' }}>
-                  ${totalMarieAPagar.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          {/* Tarjetas Dinámicas MARIE */}
+          {activeTab === 'transacciones' && !loading && (
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(180px, 1fr))', 
+              gap: '12px',
+              width: isMobile ? '100%' : 'auto'
+            }}>
+              <div style={metricCardMarieStyle}>
+                <span style={metricLabelMarieStyle}>BALANCE TOTAL</span>
+                <span style={{ color: metricasMarie.balanceTotal >= 0 ? '#15803d' : '#b91c1c', fontSize: '15px', fontWeight: '800' }}>
+                  ${metricasMarie.balanceTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
-            )}
-          </div>
+
+              <div style={metricCardMarieStyle}>
+                <span style={metricLabelMarieStyle}>BAL. TOTAL A LA FECHA</span>
+                <span style={{ color: metricasMarie.balanceTotalALaFecha >= 0 ? '#15803d' : '#b91c1c', fontSize: '15px', fontWeight: '800' }}>
+                  ${metricasMarie.balanceTotalALaFecha.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+
+              <div style={metricCardMarieStyle}>
+                <span style={metricLabelMarieStyle}>BAL. ACUM. MES ANTERIOR</span>
+                <span style={{ color: metricasMarie.balanceAnterior >= 0 ? '#475569' : '#b91c1c', fontSize: '15px', fontWeight: '700' }}>
+                  ${metricasMarie.balanceAnterior.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+
+              <div style={{ ...metricCardMarieStyle, backgroundColor: '#f8fafc', borderColor: '#cbd5e1' }}>
+                <span style={metricLabelMarieStyle}>BALANCE DEL MES</span>
+                <span style={{ color: balanceDelMesMarie >= 0 ? '#15803d' : '#b91c1c', fontSize: '15px', fontWeight: '800' }}>
+                  ${balanceDelMesMarie.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+            </div>
+          )}
         </header>
 
         {/* Sección de Contenido */}
         <section>
           {loading ? (
-            <div style={placeholderCardStyle}><h3>Cargando datos de la base de datos...</h3></div>
+            <div style={placeholderCardStyle}><h3>Cargando datos...</h3></div>
           ) : (
             <>
               {/* TAB 1: ADRIAN */}
               {activeTab === 'dashboard' && (
-                <div style={tableCardStyle}>
-                  <div style={metricsHeaderContainer}>
+                <div style={{...tableCardStyle, padding: isMobile ? '16px' : '24px'}}>
+                  <div style={{
+                    ...metricsHeaderContainer, 
+                    flexDirection: isMobile ? 'column' : 'row',
+                    alignItems: isMobile ? 'flex-start' : 'center',
+                    gap: '16px'
+                  }}>
                     <span style={sectionTitleStyle}>PAGOS DEL MES</span>
-                    <div style={{ display: 'flex', gap: '40px', textAlign: 'right' }}>
+                    <div style={{ 
+                      display: 'flex', 
+                      flexDirection: isMobile ? 'column' : 'row', 
+                      gap: isMobile ? '10px' : '40px', 
+                      width: isMobile ? '100%' : 'auto',
+                      textAlign: isMobile ? 'left' : 'right' 
+                    }}>
                       <div>
-                        <span style={{ fontSize: '12px', color: '#166534', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>Pagado</span>
-                        <span style={{ color: '#15803d', fontSize: '16px', fontWeight: '700' }}>
+                        <span style={{ fontSize: '11px', color: '#166534', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>Pagado</span>
+                        <span style={{ color: '#15803d', fontSize: '15px', fontWeight: '700' }}>
                           ${metricasFinancieras.pagado.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                       </div>
                       <div>
-                        <span style={{ fontSize: '12px', color: '#991b1b', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>Por Pagar</span>
-                        <span style={{ color: '#b91c1c', fontSize: '16px', fontWeight: '700' }}>
+                        <span style={{ fontSize: '11px', color: '#991b1b', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>Por Pagar</span>
+                        <span style={{ color: '#b91c1c', fontSize: '15px', fontWeight: '700' }}>
                           ${metricasFinancieras.porPagar.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                       </div>
-                      <div style={{ borderLeft: '1px solid #e2e8f0', paddingLeft: '40px' }}>
-                        <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>Total Mensual</span>
-                        <span style={{ color: '#0f172a', fontSize: '17px', fontWeight: '800' }}>
+                      <div style={{ 
+                        borderLeft: isMobile ? 'none' : '1px solid #e2e8f0', 
+                        borderTop: isMobile ? '1px solid #e2e8f0' : 'none',
+                        paddingLeft: isMobile ? '0' : '40px',
+                        paddingTop: isMobile ? '10px' : '0'
+                      }}>
+                        <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>Total Mensual</span>
+                        <span style={{ color: '#0f172a', fontSize: '16px', fontWeight: '800' }}>
                           ${metricasFinancieras.totalGeneral.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  {/* Contenedor Responsive para Scroll en Tablas */}
+                  <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: isMobile ? '500px' : 'auto' }}>
                       <thead>
                         <tr>
                           <th style={thStyle} onClick={() => requestSort('name')}>Producto {getSortIcon('name')}</th>
@@ -342,11 +470,11 @@ function App() {
                 </div>
               )}
 
-              {/* TAB 2: MARIE (TABLA DE TRANSACCIONES TIPO EXCEL) */}
+              {/* TAB 2: MARIE */}
               {activeTab === 'transacciones' && (
                 <div style={excelCardStyle}>
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'monospace, sans-serif' }}>
+                  <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'monospace, sans-serif', minWidth: isMobile ? '650px' : 'auto' }}>
                       <thead>
                         <tr style={{ backgroundColor: '#f1f5f9' }}>
                           <th style={excelThStyle} onClick={() => requestSort('date')}>FECHA {getSortIcon('date')}</th>
@@ -389,7 +517,7 @@ function App() {
                 </div>
               )}
 
-              {/* Placeholders para las otras pestañas */}
+              {/* Placeholders */}
               {(activeTab === 'presupuestos' || activeTab === 'inversiones') && (
                 <div style={placeholderCardStyle}>
                   <h3>Módulo de {activeTab.toUpperCase()} en desarrollo</h3>
@@ -407,7 +535,7 @@ function App() {
     ESTILOS COMPARTIDOS Y CONFIGURACIONES
    ========================================================= */
 const getStatusBadgeStyle = (status) => {
-  const baseBadgeStyle = { padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', display: 'inline-block', textAlign: 'center' };
+  const baseBadgeStyle = { padding: '4px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: '600', textTransform: 'uppercase', display: 'inline-block', textAlign: 'center', whiteSpace: 'nowrap' };
   switch (status) {
     case 'PAGADO': return { ...baseBadgeStyle, backgroundColor: '#dcfce7', color: '#166534' };
     case 'POR PAGAR': return { ...baseBadgeStyle, backgroundColor: '#fef9c3', color: '#854d0e' };
@@ -423,24 +551,50 @@ const tabButtonStyle = (isActive) => ({
   backgroundColor: isActive ? 'rgba(255, 255, 255, 0.15)' : 'transparent', fontWeight: isActive ? '600' : 'normal', transition: 'background 0.2s'
 });
 
-// Estilos de la interfaz de Marie (Estilo Excel Minimalista)
+const mobileTabButtonStyle = (isActive) => ({
+  flex: 1, height: '100%', background: 'none', border: 'none', color: isActive ? '#ffffff' : '#cbd5e1',
+  fontSize: '11px', fontWeight: isActive ? '700' : '400', display: 'flex', flexDirection: 'column',
+  justifyContent: 'center', alignItems: 'center', cursor: 'pointer', backgroundColor: isActive ? 'rgba(255, 255, 255, 0.1)' : 'transparent'
+});
+
+const metricCardMarieStyle = {
+  textAlign: 'left', 
+  backgroundColor: '#ffffff', 
+  padding: '10px 14px', 
+  borderRadius: '8px', 
+  border: '1px solid #e2e8f0',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center'
+};
+
+const metricLabelMarieStyle = { 
+  fontSize: '9px', 
+  color: '#64748b', 
+  fontWeight: '700', 
+  textTransform: 'uppercase', 
+  display: 'block',
+  marginBottom: '2px',
+  letterSpacing: '0.02em'
+};
+
 const excelDropdownStyle = {
   padding: '6px 12px', fontSize: '13px', fontWeight: '600', color: '#475569', backgroundColor: '#ffffff',
   border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', outline: 'none'
 };
-const excelCardStyle = { backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #cbd5e1', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', overflow: 'hidden' };
-const excelThStyle = { padding: '10px 14px', fontSize: '11px', fontWeight: '700', color: '#475569', borderBottom: '2px solid #cbd5e1', borderRight: '1px solid #e2e8f0', cursor: 'pointer', textAlign: 'left', userSelect: 'none' };
-const excelTdStyle = { padding: '8px 14px', fontSize: '13px', color: '#334155', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #f1f5f9' };
-const excelTrStyle = { borderBottom: '1px solid #e2e8f0', backgroundColor: '#ffffff' };
-const bucketLabelStyle = { backgroundColor: '#f8fafc', padding: '2px 6px', borderRadius: '4px', border: '1px solid #e2e8f0', fontSize: '12px' };
 
-// Estilos heredados base
-const metricsHeaderContainer = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', paddingBottom: '15px', borderBottom: '1px solid #f1f5f9' };
+const excelCardStyle = { backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #cbd5e1', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', overflow: 'hidden' };
+const excelThStyle = { padding: '10px 14px', fontSize: '11px', fontWeight: '700', color: '#475569', borderBottom: '2px solid #cbd5e1', borderRight: '1px solid #e2e8f0', cursor: 'pointer', textAlign: 'left', userSelect: 'none', whiteSpace: 'nowrap' };
+const excelTdStyle = { padding: '10px 14px', fontSize: '13px', color: '#334155', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #f1f5f9', whiteSpace: 'nowrap' };
+const excelTrStyle = { borderBottom: '1px solid #e2e8f0', backgroundColor: '#ffffff' };
+const bucketLabelStyle = { backgroundColor: '#f8fafc', padding: '2px 6px', borderRadius: '4px', border: '1px solid #e2e8f0', fontSize: '11px' };
+
+const metricsHeaderContainer = { display: 'flex', justifyContent: 'space-between', marginBottom: '20px', paddingBottom: '15px', borderBottom: '1px solid #f1f5f9' };
 const sectionTitleStyle = { color: '#0f172a', fontSize: '15px', fontWeight: '600', letterSpacing: '0.02em' };
-const placeholderCardStyle = { backgroundColor: '#ffffff', border: '1px dashed #cbd5e1', borderRadius: '12px', padding: '60px', textAlign: 'center', color: '#64748b' };
-const tableCardStyle = { backgroundColor: '#ffffff', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0' };
-const thStyle = { padding: '12px 16px', fontSize: '12px', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', borderBottom: '2px solid #e2e8f0', cursor: 'pointer' };
-const tdStyle = { padding: '14px 16px', fontSize: '14px', color: '#334155', borderBottom: '1px solid #f1f5f9' };
+const placeholderCardStyle = { backgroundColor: '#ffffff', border: '1px dashed #cbd5e1', borderRadius: '12px', padding: '40px 20px', textAlign: 'center', color: '#64748b' };
+const tableCardStyle = { backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' };
+const thStyle = { padding: '12px 14px', fontSize: '11px', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', borderBottom: '2px solid #e2e8f0', cursor: 'pointer', whiteSpace: 'nowrap' };
+const tdStyle = { padding: '12px 14px', fontSize: '13px', color: '#334155', borderBottom: '1px solid #f1f5f9', whiteSpace: 'nowrap' };
 const trHoverStyle = { transition: 'background-color 0.15s' };
 const emptyDashStyle = { color: '#94a3b8', fontStyle: 'italic' };
 
