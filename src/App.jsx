@@ -117,7 +117,7 @@ function App() {
     getTransactions();
   }, [activeTab, selectedMonth]);
 
-  // 3. FETCHING HISTÓRICO: Obtiene TODO el universo de transacciones de Marie para balances globales
+  // 3. FETCHING HISTÓRICO: Optimizado para traer los nombres de los buckets para el resumen global
   useEffect(() => {
     if (activeTab !== 'transacciones') return;
 
@@ -125,7 +125,12 @@ function App() {
       try {
         const { data, error } = await supabase
           .from('transactions')
-          .select('amount, date, money_bucket')
+          .select(`
+            amount, 
+            date, 
+            money_bucket,
+            money_buckets!money_bucket(name)
+          `)
           .eq('payer_loaner', 7);
 
         if (error) throw error;
@@ -134,7 +139,8 @@ function App() {
           const originalAmount = parseFloat(t.amount) || 0;
           return {
             ...t,
-            amount: t.money_bucket === 15 ? originalAmount : originalAmount * -1
+            amount: t.money_bucket === 15 ? originalAmount : originalAmount * -1,
+            money_bucket_name: t.money_buckets?.name || `Bucket #${t.money_bucket}`
           };
         });
 
@@ -147,7 +153,7 @@ function App() {
     getAllMarieTransactions();
   }, [activeTab]);
 
-  // Generar lista de meses fija que termina en Septiembre de 2027 hacia atrás
+  // Generar lista de meses fija
   const listaMesesOptions = useMemo(() => {
     const opciones = [];
     const fecha = new Date(2027, 8, 1); 
@@ -249,9 +255,6 @@ function App() {
     }, { pagado: 0, porPagar: 0, totalGeneral: 0 });
   }, [productosData]);
 
-  // =========================================================
-  // LÓGICA DE CÁLCULO DE TOTALES REVISADA (PRECISIÓN POR STRINGS)
-  // =========================================================
   const metricasMarie = useMemo(() => {
     const [ano, mes] = selectedMonth.split('-');
     const primerDiaMesSeleccionado = `${ano}-${mes}-01`;
@@ -279,16 +282,64 @@ function App() {
     return transactionsData.reduce((sum, t) => sum + t.amount, 0);
   }, [transactionsData]);
 
+  // =========================================================
+  // LÓGICA CORREGIDA: RESUMEN HISTÓRICO REAL (MÉTODO EXCEL)
+  // =========================================================
+  const resumenBucketsMarie = useMemo(() => {
+    const bucketsMap = {};
+    let totalDeudaProyectos = 0;
+    let totalAportadoMarie = 0;
+
+    allMarieTransactions.forEach(t => {
+      const bucketId = t.money_bucket;
+      if (!bucketId) return;
+
+      const esBucketPersonalMarie = bucketId === 7 || t.money_bucket_name.toUpperCase().includes("MARIE");
+
+      if (esBucketPersonalMarie) {
+        if (t.amount >= 0) {
+          totalAportadoMarie += t.amount;
+        } else {
+          totalAportadoMarie -= Math.abs(t.amount);
+        }
+      } else {
+        if (!bucketsMap[bucketId]) {
+          bucketsMap[bucketId] = {
+            id: bucketId,
+            name: t.money_bucket_name,
+            deudaTotal: 0
+          };
+        }
+        
+        if (t.amount < 0) {
+          bucketsMap[bucketId].deudaTotal += Math.abs(t.amount);
+          totalDeudaProyectos += Math.abs(t.amount);
+        }
+      }
+    });
+
+    const listaProyectos = Object.values(bucketsMap).sort((a, b) => b.deudaTotal - a.deudaTotal);
+    const restaPorPagarGlobal = totalDeudaProyectos - totalAportadoMarie;
+
+    return {
+      proyectos: listaProyectos,
+      totalDeudaProyectos,
+      totalAportadoMarie,
+      restaPorPagarGlobal
+    };
+  }, [allMarieTransactions]);
+
+
   return (
     <div style={{ 
       display: 'flex', 
       flexDirection: isMobile ? 'column' : 'row', 
       minHeight: '100vh', 
       backgroundColor: '#f4f6f8',
-      paddingBottom: isMobile ? '70px' : '0px' // Espacio para el nav de celular
+      paddingBottom: isMobile ? '70px' : '0px'
     }}>
 
-      {/* Sidebar (Escritorio) / Navbar (Celular) */}
+      {/* Sidebar / Navbar */}
       {!isMobile ? (
         <aside style={{ width: '260px', backgroundColor: '#465c73', padding: '24px', display: 'flex', flexDirection: 'column', boxShadow: '2px 0 8px rgba(0, 0, 0, 0.05)' }}>
           <div style={{ fontSize: '22px', fontWeight: 'bold', color: '#ffffff', marginBottom: '40px' }}>DINEROS</div>
@@ -341,45 +392,46 @@ function App() {
               ))}
             </select>
           </div>
+         </header>
 
-          {/* Tarjetas Dinámicas MARIE */}
-          {activeTab === 'transacciones' && !loading && (
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(180px, 1fr))', 
-              gap: '12px',
-              width: isMobile ? '100%' : 'auto'
-            }}>
-              <div style={metricCardMarieStyle}>
-                <span style={metricLabelMarieStyle}>BALANCE TOTAL</span>
-                <span style={{ color: metricasMarie.balanceTotal >= 0 ? '#15803d' : '#b91c1c', fontSize: '15px', fontWeight: '800' }}>
-                  ${metricasMarie.balanceTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </span>
-              </div>
+         {/* Tarjetas Dinámicas MARIE */}
+         {activeTab === 'transacciones' && !loading && (
+           <div style={{ 
+             display: 'grid', 
+             gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)', 
+             gap: '12px',
+             width: '100%',
+             marginBottom: '24px'
+           }}>
+             <div style={metricCardMarieStyle}>
+               <span style={metricLabelMarieStyle}>BALANCE TOTAL</span>
+               <span style={{ color: metricasMarie.balanceTotal >= 0 ? '#15803d' : '#b91c1c', fontSize: '15px', fontWeight: '800' }}>
+                 ${metricasMarie.balanceTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+               </span>
+             </div>
 
-              <div style={metricCardMarieStyle}>
-                <span style={metricLabelMarieStyle}>BAL. TOTAL A LA FECHA</span>
-                <span style={{ color: metricasMarie.balanceTotalALaFecha >= 0 ? '#15803d' : '#b91c1c', fontSize: '15px', fontWeight: '800' }}>
-                  ${metricasMarie.balanceTotalALaFecha.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </span>
-              </div>
+             <div style={metricCardMarieStyle}>
+               <span style={metricLabelMarieStyle}>BAL. TOTAL A LA FECHA</span>
+               <span style={{ color: metricasMarie.balanceTotalALaFecha >= 0 ? '#15803d' : '#b91c1c', fontSize: '15px', fontWeight: '800' }}>
+                 ${metricasMarie.balanceTotalALaFecha.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+               </span>
+             </div>
 
-              <div style={metricCardMarieStyle}>
-                <span style={metricLabelMarieStyle}>BAL. ACUM. MES ANTERIOR</span>
-                <span style={{ color: metricasMarie.balanceAnterior >= 0 ? '#475569' : '#b91c1c', fontSize: '15px', fontWeight: '700' }}>
-                  ${metricasMarie.balanceAnterior.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </span>
-              </div>
+             <div style={metricCardMarieStyle}>
+               <span style={metricLabelMarieStyle}>BAL. ACUM. MES ANTERIOR</span>
+               <span style={{ color: metricasMarie.balanceAnterior >= 0 ? '#475569' : '#b91c1c', fontSize: '15px', fontWeight: '700' }}>
+                 ${metricasMarie.balanceAnterior.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+               </span>
+             </div>
 
-              <div style={{ ...metricCardMarieStyle, backgroundColor: '#f8fafc', borderColor: '#cbd5e1' }}>
-                <span style={metricLabelMarieStyle}>BALANCE DEL MES</span>
-                <span style={{ color: balanceDelMesMarie >= 0 ? '#15803d' : '#b91c1c', fontSize: '15px', fontWeight: '800' }}>
-                  ${balanceDelMesMarie.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </span>
-              </div>
-            </div>
-          )}
-        </header>
+             <div style={{ ...metricCardMarieStyle, backgroundColor: '#f8fafc', borderColor: '#cbd5e1' }}>
+               <span style={metricLabelMarieStyle}>BALANCE DEL MES</span>
+               <span style={{ color: balanceDelMesMarie >= 0 ? '#15803d' : '#b91c1c', fontSize: '15px', fontWeight: '800' }}>
+                 ${balanceDelMesMarie.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+               </span>
+             </div>
+           </div>
+         )}        
 
         {/* Sección de Contenido */}
         <section>
@@ -405,14 +457,14 @@ function App() {
                       textAlign: isMobile ? 'left' : 'right' 
                     }}>
                       <div>
-                        <span style={{ fontSize: '11px', color: '#166534', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>Pagado</span>
-                        <span style={{ color: '#15803d', fontSize: '15px', fontWeight: '700' }}>
+                        <span style={{ fontSize: '11px', color: '#11532a', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>Pagado</span>
+                        <span style={{ color: '#11532a', fontSize: '15px', fontWeight: '700' }}>
                           ${metricasFinancieras.pagado.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                       </div>
                       <div>
                         <span style={{ fontSize: '11px', color: '#991b1b', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>Por Pagar</span>
-                        <span style={{ color: '#b91c1c', fontSize: '15px', fontWeight: '700' }}>
+                        <span style={{ color: '#991b1b', fontSize: '15px', fontWeight: '700' }}>
                           ${metricasFinancieras.porPagar.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                       </div>
@@ -422,15 +474,14 @@ function App() {
                         paddingLeft: isMobile ? '0' : '40px',
                         paddingTop: isMobile ? '10px' : '0'
                       }}>
-                        <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>Total Mensual</span>
-                        <span style={{ color: '#0f172a', fontSize: '16px', fontWeight: '800' }}>
+                        <span style={{ fontSize: '11px', color: '#000000', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>Total Mensual</span>
+                        <span style={{ color: '#0f172a', fontSize: '14px', fontWeight: '800' }}>
                           ${metricasFinancieras.totalGeneral.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Contenedor Responsive para Scroll en Tablas */}
                   <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: isMobile ? '500px' : 'auto' }}>
                       <thead>
@@ -472,49 +523,121 @@ function App() {
 
               {/* TAB 2: MARIE */}
               {activeTab === 'transacciones' && (
-                <div style={excelCardStyle}>
-                  <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'monospace, sans-serif', minWidth: isMobile ? '650px' : 'auto' }}>
-                      <thead>
-                        <tr style={{ backgroundColor: '#f1f5f9' }}>
-                          <th style={excelThStyle} onClick={() => requestSort('date')}>FECHA {getSortIcon('date')}</th>
-                          <th style={excelThStyle} onClick={() => requestSort('description')}>DESCRIPCIÓN {getSortIcon('description')}</th>
-                          <th style={excelThStyle} onClick={() => requestSort('money_bucket_name')}>MONEY BUCKET {getSortIcon('money_bucket_name')}</th>
-                          <th style={excelThStyle} onClick={() => requestSort('product_name')}>PRODUCTO {getSortIcon('product_name')}</th>
-                          <th style={{ ...excelThStyle, textAlign: 'right' }} onClick={() => requestSort('amount')}>MONTO {getSortIcon('amount')}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {sortedData.length === 0 ? (
-                          <tr>
-                            <td colSpan="5" style={{ ...excelTdStyle, textAlign: 'center', color: '#94a3b8', padding: '30px' }}>
-                              No hay transacciones registradas para este periodo.
-                            </td>
+                <>
+                  {/* Tabla Principal Tipo Excel */}
+                  <div style={excelCardStyle}>
+                    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'monospace, sans-serif', minWidth: isMobile ? '650px' : 'auto' }}>
+                        <thead>
+                          <tr style={{ backgroundColor: '#f1f5f9' }}>
+                            <th style={excelThStyle} onClick={() => requestSort('date')}>FECHA {getSortIcon('date')}</th>
+                            <th style={excelThStyle} onClick={() => requestSort('description')}>DESCRIPCIÓN {getSortIcon('description')}</th>
+                            <th style={excelThStyle} onClick={() => requestSort('money_bucket_name')}>MONEY BUCKET {getSortIcon('money_bucket_name')}</th>
+                            <th style={excelThStyle} onClick={() => requestSort('product_name')}>PRODUCTO {getSortIcon('product_name')}</th>
+                            <th style={{ ...excelThStyle, textAlign: 'right' }} onClick={() => requestSort('amount')}>MONTO {getSortIcon('amount')}</th>
                           </tr>
-                        ) : (
-                          sortedData.map((t) => (
-                            <tr key={t.transaction_id} style={excelTrStyle}>
-                              <td style={excelTdStyle}>{t.date}</td>
-                              <td style={excelTdStyle}>{t.description || <span style={emptyDashStyle}>sin descripción</span>}</td>
-                              <td style={excelTdStyle}>
-                                <span style={bucketLabelStyle}>{t.money_bucket_name}</span>
+                        </thead>
+                        <tbody>
+                          {sortedData.length === 0 ? (
+                            <tr>
+                              <td colSpan="5" style={{ ...excelTdStyle, textAlign: 'center', color: '#94a3b8', padding: '30px' }}>
+                                No hay transacciones registradas para este periodo.
                               </td>
-                              <td style={excelTdStyle}>{t.product_name}</td>
+                            </tr>
+                          ) : (
+                            sortedData.map((t) => (
+                              <tr key={t.transaction_id} style={excelTrStyle}>
+                                <td style={excelTdStyle}>{t.date}</td>
+                                <td style={excelTdStyle}>{t.description || <span style={emptyDashStyle}>sin descripción</span>}</td>
+                                <td style={excelTdStyle}>
+                                  <span style={bucketLabelStyle}>{t.money_bucket_name}</span>
+                                </td>
+                                <td style={excelTdStyle}>{t.product_name}</td>
+                                <td style={{ 
+                                  ...excelTdStyle, 
+                                  textAlign: 'right', 
+                                  fontWeight: '600', 
+                                  color: t.amount >= 0 ? '#16a34a' : '#dc2626' 
+                                }}>
+                                  {t.amount >= 0 ? '+' : ''}${t.amount.toFixed(2)}
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* NUEVO: RESUMEN HISTÓRICO ADAPTADO A LA ESTRUCTURA REAL DE BDD */}
+                  <div style={{ marginTop: '40px' }}>
+    
+                    
+                    <div style={excelCardStyle}>
+                      <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'monospace, sans-serif', minWidth: isMobile ? '600px' : 'auto' }}>
+                          <thead>
+                            <tr style={{ backgroundColor: '#f8fafc' }}>
+                              <th style={excelThStyle}>DEUDAS</th>
+                              <th style={{ ...excelThStyle, textAlign: 'right' }}>TOTAL CONSUMIDO / ADEUDADO</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {resumenBucketsMarie.proyectos.length === 0 ? (
+                              <tr>
+                                <td colSpan="2" style={{ ...excelTdStyle, textAlign: 'center', color: '#94a3b8', padding: '24px' }}>
+                                  No hay cobros de proyectos registrados.
+                                </td>
+                              </tr>
+                            ) : (
+                              resumenBucketsMarie.proyectos.map((proyecto) => (
+                                <tr key={proyecto.id} style={excelTrStyle}>
+                                  <td style={{ ...excelTdStyle, fontWeight: '500' }}>
+                                    {proyecto.name.toUpperCase()} <span style={{ fontSize: '10px', color: '#64748b' }}>(ID: {proyecto.id})</span>
+                                  </td>
+                                  <td style={{ ...excelTdStyle, textAlign: 'right', color: '#475569', fontWeight: '600' }}>
+                                    ${proyecto.deudaTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+
+                          {/* FILAS FINALES DE BALANCE GLOBAL (ESTILO BALANCE GENERAL EXCEL) */}
+                          <tfoot style={{ borderTop: '2px solid #cbd5e1', fontWeight: '700' }}>
+                            {/* Fila 1: Suma total de deudas */}
+                            <tr style={{ backgroundColor: '#fdf2f2' }}>
+                              <td style={{ ...excelTdStyle, color: '#991b1b' }}>DEUDA TOTAL</td>
+                              <td style={{ ...excelTdStyle, textAlign: 'right', color: '#991b1b', fontWeight: '800' }}>
+                                ${resumenBucketsMarie.totalDeudaProyectos.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </td>
+                            </tr>
+                            {/* Fila 2: Total abonado por Marie en su cuenta personal */}
+                            <tr style={{ backgroundColor: '#f0fdf4' }}>
+                              <td style={{ ...excelTdStyle, color: '#16a34a' }}>DINERO RECIBIDO</td>
+                              <td style={{ ...excelTdStyle, textAlign: 'right', color: '#16a34a', fontWeight: '800' }}>
+                                ${resumenBucketsMarie.totalAportadoMarie.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </td>
+                            </tr>
+                            {/* Fila 3: El residuo real de la cuenta */}
+                            <tr style={{ backgroundColor: '#f1f5f9', borderTop: '1px solid #94a3b8' }}>
+                              <td style={{ ...excelTdStyle, color: '#0f172a', fontSize: '13px', fontWeight: '800' }}>MONTO RESTANTE POR PAGAR</td>
                               <td style={{ 
                                 ...excelTdStyle, 
                                 textAlign: 'right', 
-                                fontWeight: '600', 
-                                color: t.amount >= 0 ? '#16a34a' : '#dc2626' 
+                                color: resumenBucketsMarie.restaPorPagarGlobal <= 0 ? '#16a34a' : '#b91c1c',
+                                fontSize: '14px',
+                                fontWeight: '900'
                               }}>
-                                {t.amount >= 0 ? '+' : ''}${t.amount.toFixed(2)}
+                                ${resumenBucketsMarie.restaPorPagarGlobal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </td>
                             </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
+                          </tfoot>
+                        </table>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                </>
               )}
 
               {/* Placeholders */}
@@ -537,8 +660,8 @@ function App() {
 const getStatusBadgeStyle = (status) => {
   const baseBadgeStyle = { padding: '4px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: '600', textTransform: 'uppercase', display: 'inline-block', textAlign: 'center', whiteSpace: 'nowrap' };
   switch (status) {
-    case 'PAGADO': return { ...baseBadgeStyle, backgroundColor: '#dcfce7', color: '#166534' };
-    case 'POR PAGAR': return { ...baseBadgeStyle, backgroundColor: '#fef9c3', color: '#854d0e' };
+    case 'PAGADO': return { ...baseBadgeStyle, backgroundColor: '#b5e2c5', color: '#33704a' };
+    case 'POR PAGAR': return { ...baseBadgeStyle, backgroundColor: '#e9e4ab', color: '#946128' };
     case 'NO DISPONIBLE AUN': return { ...baseBadgeStyle, backgroundColor: '#f1f5f9', color: '#475569' };
     case 'PRODUCTO INACTIVO': return { ...baseBadgeStyle, backgroundColor: '#e2e8f0', color: '#94a3b8' };
     case 'NO APLICA': return { ...baseBadgeStyle, backgroundColor: '#cbd5e1', color: '#475569', fontStyle: 'italic' };
