@@ -394,44 +394,7 @@ function App() {
           </div>
          </header>
 
-         {/* Tarjetas Dinámicas MARIE */}
-         {activeTab === 'transacciones' && !loading && (
-           <div style={{ 
-             display: 'grid', 
-             gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)', 
-             gap: '12px',
-             width: '100%',
-             marginBottom: '24px'
-           }}>
-             <div style={metricCardMarieStyle}>
-               <span style={metricLabelMarieStyle}>BALANCE TOTAL</span>
-               <span style={{ color: metricasMarie.balanceTotal >= 0 ? '#15803d' : '#b91c1c', fontSize: '15px', fontWeight: '800' }}>
-                 ${metricasMarie.balanceTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-               </span>
-             </div>
-
-             <div style={metricCardMarieStyle}>
-               <span style={metricLabelMarieStyle}>BAL. TOTAL A LA FECHA</span>
-               <span style={{ color: metricasMarie.balanceTotalALaFecha >= 0 ? '#15803d' : '#b91c1c', fontSize: '15px', fontWeight: '800' }}>
-                 ${metricasMarie.balanceTotalALaFecha.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-               </span>
-             </div>
-
-             <div style={metricCardMarieStyle}>
-               <span style={metricLabelMarieStyle}>BAL. ACUM. MES ANTERIOR</span>
-               <span style={{ color: metricasMarie.balanceAnterior >= 0 ? '#475569' : '#b91c1c', fontSize: '15px', fontWeight: '700' }}>
-                 ${metricasMarie.balanceAnterior.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-               </span>
-             </div>
-
-             <div style={{ ...metricCardMarieStyle, backgroundColor: '#f8fafc', borderColor: '#cbd5e1' }}>
-               <span style={metricLabelMarieStyle}>BALANCE DEL MES</span>
-               <span style={{ color: balanceDelMesMarie >= 0 ? '#15803d' : '#b91c1c', fontSize: '15px', fontWeight: '800' }}>
-                 ${balanceDelMesMarie.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-               </span>
-             </div>
-           </div>
-         )}        
+        
 
         {/* Sección de Contenido */}
         <section>
