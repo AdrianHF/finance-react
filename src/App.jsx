@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from './supabaseClient';
 import './index.css';
-
 function App() {
   // Estado para saber qué sección de la app de finanzas está activa
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -13,20 +12,17 @@ function App() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
+  const [montoDisponible, setMontoDisponible] = useState('');
   // Estado para el selector de meses en las pestañas de transacciones (Año-Mes)
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const ahora = new Date();
     const mm = String(ahora.getMonth() + 1).padStart(2, '0');
     return `${ahora.getFullYear()}-${mm}`;
   });
-
   // Estado para el botón "TODOS LOS PAGOS" (compartido entre todos los tabs de transacciones)
   const [mostrarTodos, setMostrarTodos] = useState(false);
-
   // Estado para el acordeón PULGOSAS
   const [pulgosasOpen, setPulgosasOpen] = useState(true);
-
   // =========================================================
   // MAPEOS DE LOS NUEVOS TABS
   // =========================================================
@@ -37,23 +33,19 @@ function App() {
     padre: 'PADRE',
     jefesita: 'JEFESITA',
   };
-
   const payerLoanerMap = {
     transacciones: 7, // Marie
     ana: 6,           // Ana
     padre: 4,         // Padre
     jefesita: 5,      // Jefesita
   };
-
   const personalBucketMap = {
-    transacciones: 7,  // Money bucket personal de Marie
+    transacciones: 15, // Money bucket personal de Marie
     ana: 14,           // Money bucket personal de Ana
     padre: 1,          // Money bucket personal de Padre
     jefesita: 2,       // Money bucket personal de Jefesita
   };
-
   const isTransactionTab = ['transacciones', 'ana', 'padre', 'jefesita'].includes(activeTab);
-
   // =========================================================
   // LÓGICA DE SUPABASE (ESTADOS Y FETCHING)
   // =========================================================
@@ -61,10 +53,8 @@ function App() {
   const [transactionsData, setTransactionsData] = useState([]);     // Datos del mes seleccionado (tab activo)
   const [allTransactionsData, setAllTransactionsData] = useState([]); // Histórico completo del payer_loaner activo
   const [loading, setLoading] = useState(true);
-
   // Estado para el ordenamiento de las tablas
   const [sortConfig, setConfig] = useState({ key: 'payday_limit', direction: 'asc' });
-
   // 1. Fetching para pestaña ADRIAN (Products)
   useEffect(() => {
     if (activeTab !== 'dashboard') return;
@@ -79,7 +69,6 @@ function App() {
           .select(`*, bank_statements!product(bank_statement_id, payday_limit, amount, status)`)
           .or(`payday_limit.gte.${primerDiaMes},status.eq.PRODUCTO INACTIVO`, { foreignTable: 'bank_statements' })
           .or(`payday_limit.lte.${ultimoDiaMes},status.eq.PRODUCTO INACTIVO`, { foreignTable: 'bank_statements' });
-
         if (error) throw error;
         setProductosData(data || []);
       } catch (error) {
@@ -90,7 +79,6 @@ function App() {
     };
     getProducts();
   }, [activeTab, selectedMonth]);
-
   // 2. Fetching de transacciones del mes seleccionado (para tabs de transacciones)
   useEffect(() => {
     if (!isTransactionTab) return;
@@ -101,16 +89,13 @@ function App() {
         const [ano, mes] = selectedMonth.split('-');
         const primerDia = `${ano}-${mes}-01`;
         const ultimoDia = new Date(ano, mes, 0).toISOString().split('T')[0];
-
         const { data, error } = await supabase
           .from('transactions')
           .select(`transaction_id, amount, date, description, money_bucket, payer_loaner, money_buckets!money_bucket(name), products!product(name)`)
           .eq('payer_loaner', payerLoaner)
           .gte('date', primerDia)
           .lte('date', ultimoDia);
-
         if (error) throw error;
-
         const transaccionesProcesadas = (data || []).map(t => {
           const originalAmount = parseFloat(t.amount) || 0;
           // La lógica del signo se mantiene: si el money_bucket es el personal de Marie (7), se deja positivo; en otros tabs se usa el personalBucketMap
@@ -131,7 +116,6 @@ function App() {
     };
     getTransactions();
   }, [activeTab, selectedMonth, isTransactionTab]);
-
   // 3. Fetching histórico completo para el payer_loaner activo
   useEffect(() => {
     if (!isTransactionTab) return;
@@ -142,9 +126,7 @@ function App() {
           .from('transactions')
           .select(`transaction_id, amount, date, description, money_bucket, payer_loaner, money_buckets!money_bucket(name), products!product(name)`)
           .eq('payer_loaner', payerLoaner);
-
         if (error) throw error;
-
         const procesadas = (data || []).map(t => {
           const originalAmount = parseFloat(t.amount) || 0;
           const esBucketPersonal = t.money_bucket === personalBucketMap[activeTab];
@@ -162,12 +144,11 @@ function App() {
     };
     getAllTransactions();
   }, [activeTab, isTransactionTab]);
-
   // Generar lista de meses fija (compartida)
   const listaMesesOptions = useMemo(() => {
     const opciones = [];
     const fecha = new Date(2027, 8, 1);
-    for (let i = 0; i < 24; i++) {
+    for (let i = 0; i < 60; i++) {
       const y = fecha.getFullYear();
       const m = String(fecha.getMonth() + 1).padStart(2, '0');
       const nombreMes = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(fecha);
@@ -176,7 +157,6 @@ function App() {
     }
     return opciones;
   }, []);
-
   // =========================================================
   // LÓGICA DE FILTRADO / ORDENAMIENTO (ESTILO EXCEL)
   // =========================================================
@@ -187,10 +167,8 @@ function App() {
     }
     setConfig({ key, direction });
   };
-
   // Dataset activo del tab de transacciones actual (respeta el botón "TODOS LOS PAGOS")
   const datasetActivo = mostrarTodos ? allTransactionsData : transactionsData;
-
   const sortedData = useMemo(() => {
     if (activeTab === 'dashboard') {
       let sortableItems = [...productosData];
@@ -239,16 +217,13 @@ function App() {
     }
     return [];
   }, [productosData, datasetActivo, sortConfig, activeTab, isTransactionTab]);
-
   const getSortIcon = (name) => {
     if (sortConfig.key !== name) return ' ↕';
     return sortConfig.direction === 'asc' ? ' ▲' : ' ▼';
   };
-
   // =========================================================
   // LÓGICA DE CÁLCULO DE TOTALES
   // =========================================================
-
   // Métricas ADRIAN
   const metricasFinancieras = useMemo(() => {
     return productosData.reduce((totales, item) => {
@@ -267,7 +242,6 @@ function App() {
       return totales;
     }, { pagado: 0, porPagar: 0, totalGeneral: 0 });
   }, [productosData]);
-
   // Métricas resumen del mes para la tabla principal (dataset activo)
   const metricasResumen = useMemo(() => {
     return datasetActivo.reduce((totales, t) => {
@@ -281,14 +255,12 @@ function App() {
       return totales;
     }, { pagado: 0, porPagar: 0, totalMensual: 0 });
   }, [datasetActivo]);
-
   // Métricas de balance histórico para el tab de transacciones actual
   const metricasHistoricas = useMemo(() => {
     const [ano, mes] = selectedMonth.split('-');
     const primerDiaMesSeleccionado = `${ano}-${mes}-01`;
     const ultimoDiaNum = new Date(Number(ano), Number(mes), 0).getDate();
     const ultimoDiaMesSeleccionado = `${ano}-${mes}-${String(ultimoDiaNum).padStart(2, '0')}`;
-
     return allTransactionsData.reduce((acc, t) => {
       const fechaTransaccion = t.date.split('T')[0];
       acc.balanceTotal += t.amount;
@@ -301,12 +273,20 @@ function App() {
       return acc;
     }, { balanceTotal: 0, balanceAnterior: 0, balanceTotalALaFecha: 0 });
   }, [allTransactionsData, selectedMonth]);
-
   // Balance del mes actual
   const balanceDelMes = useMemo(() => {
     return transactionsData.reduce((sum, t) => sum + t.amount, 0);
   }, [transactionsData]);
-
+  // Adeudo anterior: si la suma de todas las transacciones ANTES del mes seleccionado (sin incluir el mes en curso) es negativa, se muestra como deuda
+  const adeudoAnterior = metricasHistoricas.balanceAnterior < 0
+    ? Math.abs(metricasHistoricas.balanceAnterior)
+    : 0;
+  // Acumulado anterior: si la suma de todas las transacciones ANTES del mes seleccionado es positiva, se muestra como saldo a favor
+  const acumuladoAnterior = metricasHistoricas.balanceAnterior > 0
+    ? metricasHistoricas.balanceAnterior
+    : 0;
+  const mostrarAdeudoAnterior = !mostrarTodos && adeudoAnterior > 0;
+  const mostrarAcumuladoAnterior = !mostrarTodos && acumuladoAnterior > 0;
   // =========================================================
   // RESUMEN HISTÓRICO POR PROYECTOS (como en MARIE)
   // =========================================================
@@ -316,12 +296,10 @@ function App() {
     let totalAportadoPersonal = 0;
     const hoyStr = new Date().toISOString().split('T')[0];
     const personalBucketId = personalBucketMap[activeTab];
-
     allTransactionsData.forEach(t => {
       const bucketId = t.money_bucket;
       if (!bucketId) return;
       const esBucketPersonal = bucketId === personalBucketId || t.money_bucket_name.toUpperCase().includes(tabNames[activeTab].toUpperCase());
-
       if (esBucketPersonal) {
         totalAportadoPersonal += t.amount;
       } else {
@@ -350,7 +328,6 @@ function App() {
         }
       }
     });
-
     const listaProyectos = Object.values(bucketsMap).sort((a, b) => b.deudaTotal - a.deudaTotal);
     const restaPorPagarGlobal = totalDeudaProyectos - totalAportadoPersonal;
     return {
@@ -360,14 +337,12 @@ function App() {
       restaPorPagarGlobal
     };
   }, [allTransactionsData, activeTab, tabNames, personalBucketMap]);
-
   // Función para obtener el string del mes actual
   const getCurrentMonthString = () => {
     const ahora = new Date();
     const mm = String(ahora.getMonth() + 1).padStart(2, '0');
     return `${ahora.getFullYear()}-${mm}`;
   };
-
   // =========================================================
   // INTERFAZ
   // =========================================================
@@ -399,7 +374,6 @@ function App() {
             >
               ADRIAN
             </button>
-
             {/* Grupo PULGOSAS */}
             <div>
               <button
@@ -420,7 +394,7 @@ function App() {
                 }}
               >
                 <span>PULGOSAS</span>
-                <span style={{ fontSize: '18px' }}>{pulgosasOpen ? '▾' : '▸'}</span>
+                <span style={{ fontSize: '18px' }}>{pulgosasOpen ? '-' : '+'}</span>
               </button>
               {pulgosasOpen && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '16px' }}>
@@ -439,7 +413,6 @@ function App() {
                 </div>
               )}
             </div>
-
             <button
               onClick={() => { setActiveTab('padre'); setConfig({ key: 'date', direction: 'asc' }); }}
               style={tabButtonStyle(activeTab === 'padre')}
@@ -485,7 +458,6 @@ function App() {
           </button>
         </nav>
       )}
-
       {/* Main Content */}
       <main style={{ flex: 1, padding: isMobile ? '16px' : '40px', width: '100%', boxSizing: 'border-box' }}>
         {/* Header Unificado */}
@@ -517,7 +489,6 @@ function App() {
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
-
             {/* Botones TODOS LOS PAGOS / MES ACTUAL (solo para tabs de transacciones) */}
             {isTransactionTab && (
               <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
@@ -542,7 +513,6 @@ function App() {
             )}
           </div>
         </header>
-
         {/* Sección de Contenido */}
         <section>
           {loading ? (
@@ -550,87 +520,145 @@ function App() {
           ) : (
             <>
               {/* TAB 1: ADRIAN */}
-              {activeTab === 'dashboard' && (
-                <div style={{ ...tableCardStyle, padding: isMobile ? '16px' : '24px' }}>
-                  <div style={{
-                    ...metricsHeaderContainer,
-                    flexDirection: isMobile ? 'column' : 'row',
-                    alignItems: isMobile ? 'flex-start' : 'center',
-                    gap: '16px'
-                  }}>
-                    <span style={sectionTitleStyle}>PAGOS DEL MES</span>
-                    <div style={{
-                      display: 'flex',
-                      flexDirection: isMobile ? 'column' : 'row',
-                      gap: isMobile ? '10px' : '40px',
-                      width: isMobile ? '100%' : 'auto',
-                      textAlign: 'left'
-                    }}>
-                      <div>
-                        <span style={{ fontSize: '11px', color: '#11532a', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>Pagado</span>
-                        <span style={{ color: '#11532a', fontSize: '15px', fontWeight: '700' }}>
-                          ${metricasFinancieras.pagado.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </span>
-                      </div>
-                      <div>
-                        <span style={{ fontSize: '11px', color: '#991b1b', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>Por Pagar</span>
-                        <span style={{ color: '#991b1b', fontSize: '15px', fontWeight: '700' }}>
-                          ${metricasFinancieras.porPagar.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </span>
-                      </div>
-                      <div style={{
-                        borderLeft: isMobile ? 'none' : '1px solid #e2e8f0',
-                        borderTop: isMobile ? '1px solid #e2e8f0' : 'none',
-                        paddingLeft: isMobile ? '0' : '40px',
-                        paddingTop: isMobile ? '10px' : '0'
-                      }}>
-                        <span style={{ fontSize: '11px', color: '#000000', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>Total Mensual</span>
-                        <span style={{ color: '#0f172a', fontSize: '14px', fontWeight: '800' }}>
-                          ${metricasFinancieras.totalGeneral.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: isMobile ? '500px' : 'auto' }}>
-                      <thead>
-                        <tr>
-                          <th style={thStyle} onClick={() => requestSort('name')}>Producto {getSortIcon('name')}</th>
-                          <th style={thStyle} onClick={() => requestSort('payday_limit')}>Fecha Límite {getSortIcon('payday_limit')}</th>
-                          <th style={thStyle} onClick={() => requestSort('status')}>Estado {getSortIcon('status')}</th>
-                          <th style={{ ...thStyle, textAlign: 'right' }} onClick={() => requestSort('amount')}>Monto {getSortIcon('amount')}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {sortedData.map((item) => {
-                          const statement = item.bank_statements && item.bank_statements[0];
-                          const tieneInformacionEsteMes = !!statement;
-                          let currentStatus = tieneInformacionEsteMes ? statement.status : 'FALTA CAPTURAR';
-                          return (
-                            <tr key={item.product_id || item.id} style={trHoverStyle}>
-                              <td style={{ ...tdStyle, fontWeight: '500' }}>{item.name}</td>
-                              <td style={tdStyle}>
-                                {tieneInformacionEsteMes && currentStatus !== 'PRODUCTO INACTIVO' && currentStatus !== 'NO APLICA' && statement.payday_limit
-                                  ? statement.payday_limit
-                                  : <span style={emptyDashStyle}>—</span>}
-                              </td>
-                              <td style={tdStyle}>
-                                <span style={getStatusBadgeStyle(currentStatus)}>{currentStatus.replace(/_/g, ' ')}</span>
-                              </td>
-                              <td style={{ ...tdStyle, textAlign: 'right', fontWeight: '600' }}>
-                                {tieneInformacionEsteMes && currentStatus !== 'PRODUCTO INACTIVO' && currentStatus !== 'NO APLICA' && statement.amount !== null
-                                  ? `$${parseFloat(statement.amount).toFixed(2)}`
-                                  : <span style={emptyDashStyle}>—</span>}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-
+ {activeTab === 'dashboard' && (
+  <div style={{ ...tableCardStyle, padding: isMobile ? '16px' : '24px' }}>
+    
+    {/* TRUCO LIKUIDO: Inyectamos estilos globales temporales para fulminar las flechas en Chrome/Safari/Edge */}
+    <style>{`
+      input[type="number"]::-webkit-inner-spin-button,
+      input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      input[type="number"] {
+        -moz-appearance: textfield; /* Para Firefox */
+      }
+    `}</style>
+    <div style={{
+      ...metricsHeaderContainer,
+      flexDirection: isMobile ? 'column' : 'row',
+      alignItems: isMobile ? 'flex-start' : 'center',
+      gap: '16px',
+      marginBottom: '20px'
+    }}>
+      <span style={sectionTitleStyle}>PAGOS DEL MES</span>
+      <div style={{
+        display: 'flex',
+        flexDirection: isMobile ? 'column' : 'row',
+        gap: isMobile ? '16px' : '40px',
+        width: isMobile ? '100%' : 'auto',
+        textAlign: 'left',
+        alignItems: isMobile ? 'stretch' : 'center'
+      }}>
+        <div>
+          <span style={{ fontSize: '11px', color: '#11532a', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>Pagado</span>
+          <span style={{ color: '#11532a', fontSize: '15px', fontWeight: '700' }}>
+            ${metricasFinancieras.pagado.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </span>
+        </div>
+        <div>
+          <span style={{ fontSize: '11px', color: '#991b1b', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>Por Pagar</span>
+          <span style={{ color: '#991b1b', fontSize: '15px', fontWeight: '700' }}>
+            ${metricasFinancieras.porPagar.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </span>
+        </div>
+        <div style={{
+          borderLeft: isMobile ? 'none' : '1px solid #e2e8f0',
+          borderTop: isMobile ? '1px solid #e2e8f0' : 'none',
+          paddingLeft: isMobile ? '0' : '40px',
+          paddingTop: isMobile ? '10px' : '0'
+        }}>
+          <span style={{ fontSize: '11px', color: '#000000', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>Total Mensual</span>
+          <span style={{ color: '#0f172a', fontSize: '14px', fontWeight: '800' }}>
+            ${metricasFinancieras.totalGeneral.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </span>
+        </div>
+        {/* --- CALCULADORA DE RESTANTE --- */}
+        <div style={{
+          borderLeft: isMobile ? 'none' : '1px solid #e2e8f0',
+          borderTop: isMobile ? '1px solid #e2e8f0' : 'none',
+          paddingLeft: isMobile ? '0' : '40px',
+          paddingTop: isMobile ? '10px' : '0',
+          display: 'flex',
+          flexDirection: 'row',
+          gap: '24px',
+          alignItems: 'stretch'
+        }}>
+          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '11px', color: '#475569', fontWeight: '600', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>DISPONIBLE</span>
+            <input
+              type="number"
+              placeholder="$ 0.00"
+              value={montoDisponible}
+              onChange={(e) => setMontoDisponible(e.target.value)}
+              style={{
+                width: '100px',
+                padding: '6px 10px',
+                fontSize: '13px',
+                borderRadius: '6px',
+                border: '1px solid #cbd5e1',
+                outline: 'none',
+                fontWeight: '600',
+                textAlign: 'center',
+                margin: 0
+              }}
+            />
+          </div>
+          <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '11px', color: '#475569', fontWeight: '600', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>FALTANTE</span>
+            <div style={{ height: '31px', display: 'flex', alignItems: 'center' }}>
+              <span style={{
+                color: (metricasFinancieras.porPagar - (parseFloat(montoDisponible) || 0)) <= 0 ? '#11532a' : '#b45309',
+                fontSize: '14px',
+                fontWeight: '800'
+              }}>
+                ${Math.max(0, metricasFinancieras.porPagar - (parseFloat(montoDisponible) || 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            </div>
+          </div>
+        </div>
+        {/* --- FIN CALCULADORA --- */}
+      </div>
+    </div>
+    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: isMobile ? '500px' : 'auto' }}>
+        <thead>
+          <tr>
+            <th style={thStyle} onClick={() => requestSort('name')}>Producto {getSortIcon('name')}</th>
+            <th style={thStyle} onClick={() => requestSort('payday_limit')}>Fecha Límite {getSortIcon('payday_limit')}</th>
+            <th style={thStyle} onClick={() => requestSort('status')}>Estado {getSortIcon('status')}</th>
+            <th style={{ ...thStyle, textAlign: 'right' }} onClick={() => requestSort('amount')}>Monto {getSortIcon('amount')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sortedData.map((item) => {
+            const statement = item.bank_statements && item.bank_statements[0];
+            const tieneInformacionEsteMes = !!statement;
+            let currentStatus = tieneInformacionEsteMes ? statement.status : 'FALTA CAPTURAR';
+            return (
+              <tr key={item.product_id || item.id} style={trHoverStyle}>
+                <td style={{ ...tdStyle, fontWeight: '500' }}>{item.name}</td>
+                <td style={tdStyle}>
+                  {tieneInformacionEsteMes && currentStatus !== 'PRODUCTO INACTIVO' && currentStatus !== 'NO APLICA' && statement.payday_limit
+                    ? statement.payday_limit
+                    : <span style={emptyDashStyle}>—</span>}
+                </td>
+                <td style={tdStyle}>
+                  <span style={getStatusBadgeStyle(currentStatus)}>{currentStatus.replace(/_/g, ' ')}</span>
+                </td>
+                <td style={{ ...tdStyle, textAlign: 'right', fontWeight: '600' }}>
+                  {tieneInformacionEsteMes && currentStatus !== 'PRODUCTO INACTIVO' && currentStatus !== 'NO APLICA' && statement.amount !== null
+                    ? `$${parseFloat(statement.amount).toFixed(2)}`
+                    : <span style={emptyDashStyle}>—</span>}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
               {/* TABS DE TRANSACCIONES (MARIE, ANA, PADRE, JEFESITA) */}
               {isTransactionTab && (
                 <>
@@ -652,6 +680,22 @@ function App() {
                         width: isMobile ? '100%' : 'auto',
                         textAlign: 'left'
                       }}>
+                        {mostrarAdeudoAnterior && (
+                          <div>
+                            <span style={{ fontSize: '11px', color: '#991b1b', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>Adeudo Anterior</span>
+                            <span style={{ color: '#991b1b', fontSize: '15px', fontWeight: '700' }}>
+                              ${adeudoAnterior.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                        )}
+                        {mostrarAcumuladoAnterior && (
+                          <div>
+                            <span style={{ fontSize: '11px', color: '#11532a', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>Acumulado Anterior</span>
+                            <span style={{ color: '#11532a', fontSize: '15px', fontWeight: '700' }}>
+                              ${acumuladoAnterior.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                        )}
                         <div>
                           <span style={{ fontSize: '11px', color: '#11532a', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>Pagado</span>
                           <span style={{ color: '#11532a', fontSize: '15px', fontWeight: '700' }}>
@@ -666,7 +710,7 @@ function App() {
                             textTransform: 'uppercase',
                             display: 'block'
                           }}>
-                            {metricasResumen.porPagar < 0 ? 'Pagado de Más' : 'Por Pagar'}
+                            {metricasResumen.porPagar < 0 ? 'Pagado de Más Este Mes' : 'Restante Por Pagar'}
                           </span>
                           <span style={{
                             color: metricasResumen.porPagar < 0 ? '#11532a' : '#991b1b',
@@ -733,7 +777,6 @@ function App() {
                       </table>
                     </div>
                   </div>
-
                   {/* RESUMEN HISTÓRICO POR PROYECTOS */}
                   <div style={{ marginTop: '40px' }}>
                     <div style={excelCardStyle}>
@@ -830,7 +873,6 @@ function App() {
                   </div>
                 </>
               )}
-
               {/* No hay módulos en desarrollo, eliminamos los placeholders */}
             </>
           )}
@@ -839,11 +881,9 @@ function App() {
     </div>
   );
 }
-
 /* =========================================================
    ESTILOS COMPARTIDOS Y CONFIGURACIONES
 ========================================================= */
-
 const getStatusBadgeStyle = (status) => {
   const baseBadgeStyle = {
     padding: '4px 8px',
@@ -864,7 +904,6 @@ const getStatusBadgeStyle = (status) => {
     default: return { ...baseBadgeStyle, backgroundColor: '#fef2f2', color: '#991b1b' };
   }
 };
-
 // Botón del sidebar (ahora sin márgenes laterales para cubrir todo el ancho)
 const tabButtonStyle = (isActive) => ({
   width: '100%',
@@ -881,7 +920,6 @@ const tabButtonStyle = (isActive) => ({
   margin: 0,
   display: 'block'
 });
-
 const mobileTabButtonStyle = (isActive) => ({
   flex: 1,
   height: '100%',
@@ -897,7 +935,6 @@ const mobileTabButtonStyle = (isActive) => ({
   cursor: 'pointer',
   backgroundColor: isActive ? 'rgba(255, 255, 255, 0.1)' : 'transparent'
 });
-
 // Botón de texto para TODOS LOS PAGOS / MES ACTUAL
 const textButtonStyle = (isHighlighted) => ({
   backgroundColor: isHighlighted ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
@@ -911,7 +948,6 @@ const textButtonStyle = (isHighlighted) => ({
   transition: 'all 0.2s',
   outline: 'none'
 });
-
 const excelDropdownStyle = {
   padding: '6px 12px',
   fontSize: '13px',
@@ -923,7 +959,6 @@ const excelDropdownStyle = {
   cursor: 'pointer',
   outline: 'none'
 };
-
 const excelCardStyle = {
   backgroundColor: '#ffffff',
   borderRadius: '8px',
@@ -931,7 +966,6 @@ const excelCardStyle = {
   boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
   overflow: 'hidden'
 };
-
 const excelThStyle = {
   padding: '10px 14px',
   fontSize: '11px',
@@ -944,7 +978,6 @@ const excelThStyle = {
   userSelect: 'none',
   whiteSpace: 'nowrap'
 };
-
 const excelTdStyle = {
   padding: '10px 14px',
   fontSize: '13px',
@@ -953,12 +986,10 @@ const excelTdStyle = {
   borderRight: '1px solid #f1f5f9',
   whiteSpace: 'nowrap'
 };
-
 const excelTrStyle = {
   borderBottom: '1px solid #e2e8f0',
   backgroundColor: '#ffffff'
 };
-
 const bucketLabelStyle = {
   backgroundColor: '#f8fafc',
   padding: '2px 6px',
@@ -966,7 +997,6 @@ const bucketLabelStyle = {
   border: '1px solid #e2e8f0',
   fontSize: '11px'
 };
-
 const metricsHeaderContainer = {
   display: 'flex',
   justifyContent: 'space-between',
@@ -974,14 +1004,12 @@ const metricsHeaderContainer = {
   paddingBottom: '15px',
   borderBottom: '1px solid #f1f5f9'
 };
-
 const sectionTitleStyle = {
   color: '#0f172a',
   fontSize: '15px',
   fontWeight: '600',
   letterSpacing: '0.02em'
 };
-
 const placeholderCardStyle = {
   backgroundColor: '#ffffff',
   border: '1px dashed #cbd5e1',
@@ -990,14 +1018,12 @@ const placeholderCardStyle = {
   textAlign: 'center',
   color: '#64748b'
 };
-
 const tableCardStyle = {
   backgroundColor: '#ffffff',
   borderRadius: '12px',
   border: '1px solid #e2e8f0',
   boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
 };
-
 const thStyle = {
   padding: '12px 14px',
   fontSize: '11px',
@@ -1009,7 +1035,6 @@ const thStyle = {
   cursor: 'pointer',
   whiteSpace: 'nowrap'
 };
-
 const tdStyle = {
   padding: '12px 14px',
   fontSize: '13px',
@@ -1017,16 +1042,13 @@ const tdStyle = {
   borderBottom: '1px solid #f1f5f9',
   whiteSpace: 'nowrap'
 };
-
 const trHoverStyle = {
   transition: 'background-color 0.15s'
 };
-
 const emptyDashStyle = {
   color: '#94a3b8',
   fontStyle: 'italic'
 };
-
 // Tooltip de información (i)
 const infoIconStyle = {
   display: 'inline-flex',
@@ -1043,7 +1065,6 @@ const infoIconStyle = {
   cursor: 'help',
   userSelect: 'none'
 };
-
 // Barra de progreso de pagos
 const progressBarTrackStyle = {
   width: '100%',
@@ -1052,7 +1073,6 @@ const progressBarTrackStyle = {
   backgroundColor: '#e2e8f0',
   overflow: 'hidden'
 };
-
 const progressBarFillStyle = (porcentaje) => ({
   height: '100%',
   width: `${Math.min(100, Math.max(0, porcentaje))}%`,
@@ -1060,5 +1080,4 @@ const progressBarFillStyle = (porcentaje) => ({
   borderRadius: '4px',
   transition: 'width 0.3s ease'
 });
-
 export default App;
