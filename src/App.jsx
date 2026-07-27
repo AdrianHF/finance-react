@@ -22,7 +22,7 @@ function App() {
   // Estado para el botón "TODOS LOS PAGOS" (compartido entre todos los tabs de transacciones)
   const [mostrarTodos, setMostrarTodos] = useState(false);
   // Estado para el acordeón PULGOSAS
-  const [pulgosasOpen, setPulgosasOpen] = useState(true);
+  const [pulgosasOpen, setPulgosasOpen] = useState(false);
   // =========================================================
   // MAPEOS DE LOS NUEVOS TABS
   // =========================================================
@@ -367,7 +367,7 @@ function App() {
           <div style={{ fontSize: '22px', fontWeight: 'bold', color: '#ffffff', padding: '24px 24px 24px 24px' }}>
             DINEROS
           </div>
-          <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '0', flex: 1 }}>
+          <nav style={{ display: 'flex', flexDirection: 'column', gap: '0px', padding: '0', flex: 1 }}>
             <button
               onClick={() => { setActiveTab('dashboard'); setConfig({ key: 'payday_limit', direction: 'asc' }); }}
               style={tabButtonStyle(activeTab === 'dashboard')}
@@ -384,7 +384,7 @@ function App() {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  backgroundColor: 'transparent',
+                  backgroundColor: pulgosasOpen ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
                   fontWeight: '600',
                   fontSize: '14px',
                   border: 'none',
@@ -394,19 +394,46 @@ function App() {
                 }}
               >
                 <span>PULGOSAS</span>
-                <span style={{ fontSize: '18px' }}>{pulgosasOpen ? '-' : '+'}</span>
-              </button>
+                {/* Ícono SVG con animación de rotación */}
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{
+                    transform: pulgosasOpen ? 'rotate(-180deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s ease-in-out'
+                  }}
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>  </button>
+
               {pulgosasOpen && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0px', paddingLeft: '5px' }}>
                   <button
                     onClick={() => { setActiveTab('transacciones'); setConfig({ key: 'date', direction: 'asc' }); }}
-                    style={tabButtonStyle(activeTab === 'transacciones')}
+                    style={{
+                      ...tabButtonStyle(activeTab === 'transacciones'),
+                      // Azul suave / translúcido que armoniza con fondos oscuros
+                      backgroundColor: activeTab === 'transacciones' ? '#7fa8e9' : 'rgb(200, 202, 207)',
+                      color: '#ffffff'
+                    }}
                   >
                     MARIE
                   </button>
+
                   <button
                     onClick={() => { setActiveTab('ana'); setConfig({ key: 'date', direction: 'asc' }); }}
-                    style={tabButtonStyle(activeTab === 'ana')}
+                    style={{
+                      ...tabButtonStyle(activeTab === 'ana'),
+                      // Azul suave / translúcido que armoniza con fondos oscuros
+                      backgroundColor: activeTab === 'ana' ? '#7fa8e9' : 'rgb(200, 202, 207)',
+                      color: '#ffffff'
+                    }}
                   >
                     ANA
                   </button>
@@ -454,7 +481,7 @@ function App() {
             PADRE
           </button>
           <button onClick={() => { setActiveTab('jefesita'); setConfig({ key: 'date', direction: 'asc' }); }} style={mobileTabButtonStyle(activeTab === 'jefesita')}>
-            JEFE
+            JEFESITA
           </button>
         </nav>
       )}
@@ -520,11 +547,11 @@ function App() {
           ) : (
             <>
               {/* TAB 1: ADRIAN */}
- {activeTab === 'dashboard' && (
-  <div style={{ ...tableCardStyle, padding: isMobile ? '16px' : '24px' }}>
-    
-    {/* TRUCO LIKUIDO: Inyectamos estilos globales temporales para fulminar las flechas en Chrome/Safari/Edge */}
-    <style>{`
+              {activeTab === 'dashboard' && (
+                <div style={{ ...tableCardStyle, padding: isMobile ? '16px' : '24px' }}>
+
+                  {/* TRUCO LIKUIDO: Inyectamos estilos globales temporales para fulminar las flechas en Chrome/Safari/Edge */}
+                  <style>{`
       input[type="number"]::-webkit-inner-spin-button,
       input[type="number"]::-webkit-outer-spin-button {
         -webkit-appearance: none;
@@ -534,131 +561,131 @@ function App() {
         -moz-appearance: textfield; /* Para Firefox */
       }
     `}</style>
-    <div style={{
-      ...metricsHeaderContainer,
-      flexDirection: isMobile ? 'column' : 'row',
-      alignItems: isMobile ? 'flex-start' : 'center',
-      gap: '16px',
-      marginBottom: '20px'
-    }}>
-      <span style={sectionTitleStyle}>PAGOS DEL MES</span>
-      <div style={{
-        display: 'flex',
-        flexDirection: isMobile ? 'column' : 'row',
-        gap: isMobile ? '16px' : '40px',
-        width: isMobile ? '100%' : 'auto',
-        textAlign: 'left',
-        alignItems: isMobile ? 'stretch' : 'center'
-      }}>
-        <div>
-          <span style={{ fontSize: '11px', color: '#11532a', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>Pagado</span>
-          <span style={{ color: '#11532a', fontSize: '15px', fontWeight: '700' }}>
-            ${metricasFinancieras.pagado.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </span>
-        </div>
-        <div>
-          <span style={{ fontSize: '11px', color: '#991b1b', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>Por Pagar</span>
-          <span style={{ color: '#991b1b', fontSize: '15px', fontWeight: '700' }}>
-            ${metricasFinancieras.porPagar.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </span>
-        </div>
-        <div style={{
-          borderLeft: isMobile ? 'none' : '1px solid #e2e8f0',
-          borderTop: isMobile ? '1px solid #e2e8f0' : 'none',
-          paddingLeft: isMobile ? '0' : '40px',
-          paddingTop: isMobile ? '10px' : '0'
-        }}>
-          <span style={{ fontSize: '11px', color: '#000000', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>Total Mensual</span>
-          <span style={{ color: '#0f172a', fontSize: '14px', fontWeight: '800' }}>
-            ${metricasFinancieras.totalGeneral.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </span>
-        </div>
-        {/* --- CALCULADORA DE RESTANTE --- */}
-        <div style={{
-          borderLeft: isMobile ? 'none' : '1px solid #e2e8f0',
-          borderTop: isMobile ? '1px solid #e2e8f0' : 'none',
-          paddingLeft: isMobile ? '0' : '40px',
-          paddingTop: isMobile ? '10px' : '0',
-          display: 'flex',
-          flexDirection: 'row',
-          gap: '24px',
-          alignItems: 'stretch'
-        }}>
-          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '11px', color: '#475569', fontWeight: '600', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>DISPONIBLE</span>
-            <input
-              type="number"
-              placeholder="$ 0.00"
-              value={montoDisponible}
-              onChange={(e) => setMontoDisponible(e.target.value)}
-              style={{
-                width: '100px',
-                padding: '6px 10px',
-                fontSize: '13px',
-                borderRadius: '6px',
-                border: '1px solid #cbd5e1',
-                outline: 'none',
-                fontWeight: '600',
-                textAlign: 'center',
-                margin: 0
-              }}
-            />
-          </div>
-          <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '11px', color: '#475569', fontWeight: '600', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>FALTANTE</span>
-            <div style={{ height: '31px', display: 'flex', alignItems: 'center' }}>
-              <span style={{
-                color: (metricasFinancieras.porPagar - (parseFloat(montoDisponible) || 0)) <= 0 ? '#11532a' : '#b45309',
-                fontSize: '14px',
-                fontWeight: '800'
-              }}>
-                ${Math.max(0, metricasFinancieras.porPagar - (parseFloat(montoDisponible) || 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </span>
-            </div>
-          </div>
-        </div>
-        {/* --- FIN CALCULADORA --- */}
-      </div>
-    </div>
-    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: isMobile ? '500px' : 'auto' }}>
-        <thead>
-          <tr>
-            <th style={thStyle} onClick={() => requestSort('name')}>Producto {getSortIcon('name')}</th>
-            <th style={thStyle} onClick={() => requestSort('payday_limit')}>Fecha Límite {getSortIcon('payday_limit')}</th>
-            <th style={thStyle} onClick={() => requestSort('status')}>Estado {getSortIcon('status')}</th>
-            <th style={{ ...thStyle, textAlign: 'right' }} onClick={() => requestSort('amount')}>Monto {getSortIcon('amount')}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sortedData.map((item) => {
-            const statement = item.bank_statements && item.bank_statements[0];
-            const tieneInformacionEsteMes = !!statement;
-            let currentStatus = tieneInformacionEsteMes ? statement.status : 'FALTA CAPTURAR';
-            return (
-              <tr key={item.product_id || item.id} style={trHoverStyle}>
-                <td style={{ ...tdStyle, fontWeight: '500' }}>{item.name}</td>
-                <td style={tdStyle}>
-                  {tieneInformacionEsteMes && currentStatus !== 'PRODUCTO INACTIVO' && currentStatus !== 'NO APLICA' && statement.payday_limit
-                    ? statement.payday_limit
-                    : <span style={emptyDashStyle}>—</span>}
-                </td>
-                <td style={tdStyle}>
-                  <span style={getStatusBadgeStyle(currentStatus)}>{currentStatus.replace(/_/g, ' ')}</span>
-                </td>
-                <td style={{ ...tdStyle, textAlign: 'right', fontWeight: '600' }}>
-                  {tieneInformacionEsteMes && currentStatus !== 'PRODUCTO INACTIVO' && currentStatus !== 'NO APLICA' && statement.amount !== null
-                    ? `$${parseFloat(statement.amount).toFixed(2)}`
-                    : <span style={emptyDashStyle}>—</span>}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
-  </div>
-)}
+                  <div style={{
+                    ...metricsHeaderContainer,
+                    flexDirection: isMobile ? 'column' : 'row',
+                    alignItems: isMobile ? 'flex-start' : 'center',
+                    gap: '16px',
+                    marginBottom: '20px'
+                  }}>
+                    <span style={sectionTitleStyle}>PAGOS DEL MES</span>
+                    <div style={{
+                      display: 'flex',
+                      flexDirection: isMobile ? 'column' : 'row',
+                      gap: isMobile ? '16px' : '40px',
+                      width: isMobile ? '100%' : 'auto',
+                      textAlign: 'left',
+                      alignItems: isMobile ? 'stretch' : 'center'
+                    }}>
+                      <div>
+                        <span style={{ fontSize: '11px', color: '#11532a', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>Pagado</span>
+                        <span style={{ color: '#11532a', fontSize: '15px', fontWeight: '700' }}>
+                          ${metricasFinancieras.pagado.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '11px', color: '#991b1b', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>Por Pagar</span>
+                        <span style={{ color: '#991b1b', fontSize: '15px', fontWeight: '700' }}>
+                          ${metricasFinancieras.porPagar.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                      <div style={{
+                        borderLeft: isMobile ? 'none' : '1px solid #e2e8f0',
+                        borderTop: isMobile ? '1px solid #e2e8f0' : 'none',
+                        paddingLeft: isMobile ? '0' : '40px',
+                        paddingTop: isMobile ? '10px' : '0'
+                      }}>
+                        <span style={{ fontSize: '11px', color: '#000000', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>Total Mensual</span>
+                        <span style={{ color: '#0f172a', fontSize: '14px', fontWeight: '800' }}>
+                          ${metricasFinancieras.totalGeneral.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                      {/* --- CALCULADORA DE RESTANTE --- */}
+                      <div style={{
+                        borderLeft: isMobile ? 'none' : '1px solid #e2e8f0',
+                        borderTop: isMobile ? '1px solid #e2e8f0' : 'none',
+                        paddingLeft: isMobile ? '0' : '40px',
+                        paddingTop: isMobile ? '10px' : '0',
+                        display: 'flex',
+                        flexDirection: 'row',
+                        gap: '24px',
+                        alignItems: 'stretch'
+                      }}>
+                        <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                          <span style={{ fontSize: '11px', color: '#475569', fontWeight: '600', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>DISPONIBLE</span>
+                          <input
+                            type="number"
+                            placeholder="$ 0.00"
+                            value={montoDisponible}
+                            onChange={(e) => setMontoDisponible(e.target.value)}
+                            style={{
+                              width: '100px',
+                              padding: '6px 10px',
+                              fontSize: '13px',
+                              borderRadius: '6px',
+                              border: '1px solid #cbd5e1',
+                              outline: 'none',
+                              fontWeight: '600',
+                              textAlign: 'center',
+                              margin: 0
+                            }}
+                          />
+                        </div>
+                        <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                          <span style={{ fontSize: '11px', color: '#475569', fontWeight: '600', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>FALTANTE</span>
+                          <div style={{ height: '31px', display: 'flex', alignItems: 'center' }}>
+                            <span style={{
+                              color: (metricasFinancieras.porPagar - (parseFloat(montoDisponible) || 0)) <= 0 ? '#11532a' : '#b45309',
+                              fontSize: '14px',
+                              fontWeight: '800'
+                            }}>
+                              ${Math.max(0, metricasFinancieras.porPagar - (parseFloat(montoDisponible) || 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      {/* --- FIN CALCULADORA --- */}
+                    </div>
+                  </div>
+                  <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: isMobile ? '500px' : 'auto' }}>
+                      <thead>
+                        <tr>
+                          <th style={thStyle} onClick={() => requestSort('name')}>Producto {getSortIcon('name')}</th>
+                          <th style={thStyle} onClick={() => requestSort('payday_limit')}>Fecha Límite {getSortIcon('payday_limit')}</th>
+                          <th style={thStyle} onClick={() => requestSort('status')}>Estado {getSortIcon('status')}</th>
+                          <th style={{ ...thStyle, textAlign: 'right' }} onClick={() => requestSort('amount')}>Monto {getSortIcon('amount')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sortedData.map((item) => {
+                          const statement = item.bank_statements && item.bank_statements[0];
+                          const tieneInformacionEsteMes = !!statement;
+                          let currentStatus = tieneInformacionEsteMes ? statement.status : 'FALTA CAPTURAR';
+                          return (
+                            <tr key={item.product_id || item.id} style={trHoverStyle}>
+                              <td style={{ ...tdStyle, fontWeight: '500' }}>{item.name}</td>
+                              <td style={tdStyle}>
+                                {tieneInformacionEsteMes && currentStatus !== 'PRODUCTO INACTIVO' && currentStatus !== 'NO APLICA' && statement.payday_limit
+                                  ? statement.payday_limit
+                                  : <span style={emptyDashStyle}>—</span>}
+                              </td>
+                              <td style={tdStyle}>
+                                <span style={getStatusBadgeStyle(currentStatus)}>{currentStatus.replace(/_/g, ' ')}</span>
+                              </td>
+                              <td style={{ ...tdStyle, textAlign: 'right', fontWeight: '600' }}>
+                                {tieneInformacionEsteMes && currentStatus !== 'PRODUCTO INACTIVO' && currentStatus !== 'NO APLICA' && statement.amount !== null
+                                  ? `$${parseFloat(statement.amount).toFixed(2)}`
+                                  : <span style={emptyDashStyle}>—</span>}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
               {/* TABS DE TRANSACCIONES (MARIE, ANA, PADRE, JEFESITA) */}
               {isTransactionTab && (
                 <>
@@ -697,7 +724,7 @@ function App() {
                           </div>
                         )}
                         <div>
-                          <span style={{ fontSize: '11px', color: '#11532a', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>Pagado</span>
+                          <span style={{ fontSize: '11px', color: '#11532a', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>Pagado Este Mes</span>
                           <span style={{ color: '#11532a', fontSize: '15px', fontWeight: '700' }}>
                             ${metricasResumen.pagado.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
@@ -710,7 +737,7 @@ function App() {
                             textTransform: 'uppercase',
                             display: 'block'
                           }}>
-                            {metricasResumen.porPagar < 0 ? 'Pagado de Más Este Mes' : 'Restante Por Pagar'}
+                            {metricasResumen.porPagar < 0 ? 'Pagado de Más Este Mes' : 'Restante Por Pagar Este Mes'}
                           </span>
                           <span style={{
                             color: metricasResumen.porPagar < 0 ? '#11532a' : '#991b1b',
@@ -727,7 +754,7 @@ function App() {
                           paddingTop: isMobile ? '10px' : '0'
                         }}>
                           <span style={{ fontSize: '11px', color: '#000000', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>
-                            TOTAL A PAGAR
+                            TOTAL A PAGAR ESTE MES
                           </span>
                           <span style={{ color: '#0f172a', fontSize: '14px', fontWeight: '800' }}>
                             ${metricasResumen.totalMensual.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -854,7 +881,7 @@ function App() {
                             </tr>
                             <tr style={{ backgroundColor: '#f1f5f9', borderTop: '1px solid #94a3b8' }}>
                               <td colSpan="2" style={{ ...excelTdStyle, color: '#0f172a', fontSize: '13px', fontWeight: '800' }}>
-                                MONTO RESTANTE POR PAGAR
+                                MONTO RESTANTE POR PAGAR ESTE MES
                               </td>
                               <td style={{
                                 ...excelTdStyle,
