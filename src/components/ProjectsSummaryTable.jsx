@@ -36,7 +36,7 @@ export default function ProjectsSummaryTable({ isMobile, resumenBuckets }) {
                     i
                   </span>
                 </th>
-                <th style={{ ...excelThStyle, textAlign: 'right' }}>TOTAL CONSUMIDO / ADEUDADO</th>
+                <th style={{ ...excelThStyle, textAlign: 'right' }}>DEUDA TOTAL</th>
               </tr>
             </thead>
             <tbody>
@@ -94,7 +94,7 @@ export default function ProjectsSummaryTable({ isMobile, resumenBuckets }) {
               </tr>
               <tr style={{ backgroundColor: '#f1f5f9', borderTop: '1px solid #94a3b8' }}>
                 <td colSpan="2" style={{ ...excelTdStyle, color: '#0f172a', fontSize: '13px', fontWeight: '800' }}>
-                  MONTO RESTANTE POR PAGAR ESTE MES
+                  MONTO RESTANTE POR PAGAR
                 </td>
                 <td
                   style={{

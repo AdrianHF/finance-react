@@ -54,6 +54,27 @@ export const tabButtonStyle = (isActive) => ({
   display: 'block',
 });
 
+
+export const tabButtonStyleBuckets = (isActive) => ({
+  width: '100%',
+  textAlign: 'left',
+  padding: '12px 24px',
+  border: 'none',
+  borderRadius: '0',
+  fontSize: '15px',
+  cursor: 'pointer',
+  color: '#ffffff',
+  backgroundColor: isActive ? '#e9925f' : '#e4a580',
+  fontWeight: isActive ? '600' : 'normal',
+  transition: 'background 0.2s',
+  margin: 0,
+  display: 'block',
+});
+
+
+
+
+
 export const mobileTabButtonStyle = (isActive) => ({
   flex: 1,
   height: '100%',

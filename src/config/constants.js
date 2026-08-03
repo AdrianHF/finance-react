@@ -16,6 +16,9 @@ export const TAB_NAMES = {
   padre: 'PADRE',
   jefesita: 'JEFESITA',
   terrenoFelipao: 'TERRENO FELIPAO',
+  terrenoFelipe2DO: 'TERRENO FELIPE 2DO',
+  carro: 'CARRO',
+  desbRefriReg: 'DESBROZADORA, REFRIGERADOR, REGULADOR',
 };
 
 // Relaciona cada tab de transacciones con su payer_loaner_id en Supabase.
@@ -33,7 +36,23 @@ export const PERSONAL_BUCKET_MAP = {
   ana: 14,           // Money bucket personal de Ana
   padre: 1,          // Money bucket personal de Padre
   jefesita: 2,       // Money bucket personal de Jefesita
+
 };
+
+export const PROJECT_BUCKET_MAP = {
+  terrenoFelipao: 11, // Money bucket del proyecto "terreno Felipao"
+  terrenoFelipe2DO: 10, // Money bucket del proyecto "terreno Felipe 2DO"
+  carro: 3, // Money bucket del proyecto "carro"
+  desbRefriReg: 19, // Money bucket del proyecto "desbrozadora, refrigerador, regulador"
+};
+export const PROJECT_TABS = [
+  'terrenoFelipao',
+  'terrenoFelipe2DO',
+  'carro',
+  'desbRefriReg',
+];
+
+
 
 // Tabs que muestran la vista de "transacciones" (todo excepto ADRIAN).
 export const TRANSACTION_TABS = ['transacciones', 'ana', 'padre', 'jefesita'];

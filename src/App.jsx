@@ -7,7 +7,12 @@
 // componentes de presentación, y decide qué renderizar según el tab.
 import React, { useState, useMemo } from 'react';
 
-import { TRANSACTION_TABS, DEFAULT_SORT_DASHBOARD, DEFAULT_SORT_TRANSACTIONS } from './config/constants';
+import { 
+  TRANSACTION_TABS, 
+  PROJECT_TABS, 
+  DEFAULT_SORT_DASHBOARD, 
+  DEFAULT_SORT_TRANSACTIONS 
+} from './config/constants';
 import { getCurrentMonthString, buildMonthOptions } from './utils/dateUtils';
 import { placeholderCardStyle } from './styles/styles';
 
@@ -22,6 +27,7 @@ import AppHeader from './components/AppHeader';
 import DashboardTab from './components/DashboardTab';
 import TransactionsTable from './components/TransactionsTable';
 import ProjectsSummaryTable from './components/ProjectsSummaryTable';
+import ProjectTransactionsTable from './components/ProjectTransactionsTable';
 
 import './index.css';
 
@@ -37,25 +43,29 @@ function App() {
   const [mostrarTodos, setMostrarTodos] = useState(false);
   const [montoDisponible, setMontoDisponible] = useState('');
 
-  // --- Ordenamiento tipo Excel (se reinicia al cambiar de tab, igual que antes) ---
+  // --- Ordenamiento tipo Excel ---
   const { sortConfig, setSortConfig, requestSort, getSortIcon } = useSortConfig(DEFAULT_SORT_DASHBOARD);
 
+  // Banderas para saber si el tab actual es de Persona o de Proyecto
   const isTransactionTab = TRANSACTION_TABS.includes(activeTab);
+  const isProjectTab = PROJECT_TABS.includes(activeTab);
 
-  // Lista fija de meses para el <select>: no depende de nada, se calcula una sola vez.
+  // Lista fija de meses para el <select>
   const monthOptions = useMemo(() => buildMonthOptions(), []);
 
   // --- Datos del tab activo ---
-  // Cada hook internamente ignora la petición a Supabase si no es su tab
-  // (mismo comportamiento que los `if (activeTab !== 'dashboard') return;`
-  // originales), así que es seguro llamarlos siempre en el mismo orden.
   const dashboard = useDashboardData(activeTab, selectedMonth, sortConfig);
-  const transactions = useTransactionsData(activeTab, selectedMonth, isTransactionTab, mostrarTodos, sortConfig);
+  // Nota: Pasamos (isTransactionTab || isProjectTab) para que useTransactionsData se active en ambos tipos de tabs
+  const transactions = useTransactionsData(
+    activeTab, 
+    selectedMonth, 
+    isTransactionTab || isProjectTab, 
+    mostrarTodos, 
+    sortConfig
+  );
 
   const loading = activeTab === 'dashboard' ? dashboard.loading : transactions.loading;
 
-  // Cambiar de tab reinicia el ordenamiento, igual que en el código original
-  // (dashboard ordena por fecha límite, transacciones por fecha).
   const handleSelectTab = (tabId) => {
     setActiveTab(tabId);
     setSortConfig(tabId === 'dashboard' ? DEFAULT_SORT_DASHBOARD : DEFAULT_SORT_TRANSACTIONS);
@@ -91,7 +101,7 @@ function App() {
           selectedMonth={selectedMonth}
           onSelectedMonthChange={setSelectedMonth}
           monthOptions={monthOptions}
-          isTransactionTab={isTransactionTab}
+          isTransactionTab={isTransactionTab || isProjectTab}
           mostrarTodos={mostrarTodos}
           onMostrarTodosChange={setMostrarTodos}
         />
@@ -103,6 +113,7 @@ function App() {
             </div>
           ) : (
             <>
+              {/* 1. VISTA DASHBOARD */}
               {activeTab === 'dashboard' && (
                 <DashboardTab
                   isMobile={isMobile}
@@ -115,6 +126,7 @@ function App() {
                 />
               )}
 
+              {/* 2. VISTAS DE PERSONAS (Marie, Ana, Padre, Jefesita) */}
               {isTransactionTab && (
                 <>
                   <TransactionsTable
@@ -131,6 +143,18 @@ function App() {
                   />
                   <ProjectsSummaryTable isMobile={isMobile} resumenBuckets={transactions.resumenBuckets} />
                 </>
+              )}
+
+              {/* 3. VISTAS DE PROYECTOS / CUBETAS (Terreno Felipao, etc.) */}
+              {isProjectTab && (
+                <ProjectTransactionsTable
+                  isMobile={isMobile}
+                  mostrarTodos={mostrarTodos}
+                  sortedData={transactions.sortedData}
+                  totalMensual={transactions.metricasResumen?.totalMensual || 0}
+                  requestSort={requestSort}
+                  getSortIcon={getSortIcon}
+                />
               )}
             </>
           )}

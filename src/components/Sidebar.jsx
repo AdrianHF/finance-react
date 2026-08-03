@@ -1,6 +1,6 @@
 // src/components/Sidebar.jsx
 import React from 'react';
-import { tabButtonStyle } from '../styles/styles';
+import { tabButtonStyle,tabButtonStyleBuckets } from '../styles/styles';
 
 /**
  * Navegación lateral de escritorio. Solo se renderiza cuando !isMobile
@@ -117,7 +117,8 @@ export default function Sidebar({
                 </button>
 
                 {/* Grupo CUBETAS */}
-                <div>
+                <div >
+
                     <button
                         onClick={onToggleCubetas}
                         style={{
@@ -126,14 +127,14 @@ export default function Sidebar({
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
-                            backgroundColor: cubetasOpen ? ' #000000' : '#ff9e54'
+                            backgroundColor: cubetasOpen ? ' #ff7003' : '#ff9e54'
                             ,
                             fontWeight: '600',
                             fontSize: '14px',
                             border: 'none',
                             color: '#ffffff',
                             padding: '12px 24px',
-                            margin: 0,
+                            margin: 0
                         }}
                     >
                         <span>CUBETAS</span>
@@ -162,10 +163,23 @@ export default function Sidebar({
                     </button>
 
                     {cubetasOpen && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0px', paddingLeft: '5px' }}>
-                            <button onClick={() => onSelectTab('terrenoFelipao')} style={tabButtonStyle(activeTab === 'terrenoFelipao')}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0px', paddingLeft: '0px' }}>
+                            <button onClick={() => onSelectTab('terrenoFelipao')} style={tabButtonStyleBuckets(activeTab === 'terrenoFelipao')}>
                                 TERRENO FELIPAO
                             </button>
+                              <button onClick={() => onSelectTab('terrenoFelipe2DO')} style={tabButtonStyleBuckets(activeTab === 'terrenoFelipe2DO')}>
+                                TERRENO FELIPE 2DO
+                            </button>
+                            <button onClick={() => onSelectTab('carro')} style={tabButtonStyleBuckets(activeTab === 'carro')}>
+                                CARRO
+                            </button> 
+                            <button onClick={() => onSelectTab('desbRefriReg')} style={tabButtonStyleBuckets(activeTab === 'desbRefriReg')}>
+                                DESB, REFRI, REG
+                            </button>
+
+
+
+
                         </div>
                     )}
                 </div>
