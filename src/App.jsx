@@ -152,6 +152,7 @@ function App() {
                   mostrarTodos={mostrarTodos}
                   sortedData={transactions.sortedData}
                   totalMensual={transactions.metricasResumen?.totalMensual || 0}
+                  adeudoAnterior={transactions.adeudoAnterior}
                   requestSort={requestSort}
                   getSortIcon={getSortIcon}
                 />

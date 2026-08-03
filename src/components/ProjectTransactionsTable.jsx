@@ -1,4 +1,3 @@
-// src/components/ProjectTransactionsTable.jsx
 import React from 'react';
 import {
   tableCardStyle,
@@ -11,16 +10,12 @@ import {
   bucketLabelStyle,
 } from '../styles/styles';
 
-/**
- * Tabla de movimientos por Proyecto / Money Bucket.
- * Muestra el título, las métricas del mes (Total a pagar, Pagado, Restante por pagar)
- * y la lista de transacciones.
- */
 export default function ProjectTransactionsTable({
   isMobile,
   mostrarTodos,
   sortedData = [],
   totalMensual = 0,
+  adeudoAnterior = 0, // <-- NUEVA PROP
   requestSort,
   getSortIcon,
 }) {
@@ -36,9 +31,11 @@ export default function ProjectTransactionsTable({
     return val > 0 ? acc + val : acc;
   }, 0);
 
-  // 2. Restante por pagar este mes: 
-  // Convierte totalMensual a valor de deuda/negativo y le suma lo pagado
-  const restantePorPagar = (-1 * Math.abs(totalMensual)) + pagadoEsteMes;
+  // 2. Restante por pagar del mes actual
+  const restanteMesActual = Math.max(0, totalMensual - pagadoEsteMes);
+
+  // 3. Deuda Total acumulada (Adeudo anterior + Restante del mes)
+  const totalRestanteConsolidado = adeudoAnterior + restanteMesActual;
 
   return (
     <div style={{ ...tableCardStyle, padding: isMobile ? '16px' : '24px' }}>
@@ -65,7 +62,33 @@ export default function ProjectTransactionsTable({
             alignItems: 'center',
           }}
         >
-          {/* Métrica 1: Total a pagar este mes */}
+          {/* Métrica 1: Adeudo Anterior */}
+          {!mostrarTodos && (
+            <div>
+              <span
+                style={{
+                  fontSize: '11px',
+                  color: '#64748b',
+                  fontWeight: '600',
+                  textTransform: 'uppercase',
+                  display: 'block',
+                }}
+              >
+                Adeudo Anterior
+              </span>
+              <span
+                style={{
+                  color: adeudoAnterior > 0 ? '#dc2626' : '#16a34a',
+                  fontSize: '16px',
+                  fontWeight: '800',
+                }}
+              >
+                ${fmt(adeudoAnterior)}
+              </span>
+            </div>
+          )}
+
+          {/* Métrica 2: Total a pagar este mes */}
           <div>
             <span
               style={{
@@ -89,7 +112,7 @@ export default function ProjectTransactionsTable({
             </span>
           </div>
 
-          {/* Métrica 2: Pagado este mes */}
+          {/* Métrica 3: Pagado este mes */}
           <div>
             <span
               style={{
@@ -113,7 +136,7 @@ export default function ProjectTransactionsTable({
             </span>
           </div>
 
-          {/* Métrica 3: Restante por pagar este mes */}
+          {/* Métrica 4: Restante Total a Pagar (Incluye Deuda Anterior) */}
           <div>
             <span
               style={{
@@ -124,16 +147,16 @@ export default function ProjectTransactionsTable({
                 display: 'block',
               }}
             >
-              Restante por pagar
+              Deuda Total Pendiente
             </span>
             <span
               style={{
-                color: restantePorPagar >= 0 ? '#16a34a' : '#dc2626',
+                color: totalRestanteConsolidado > 0 ? '#dc2626' : '#16a34a',
                 fontSize: '16px',
                 fontWeight: '800',
               }}
             >
-              ${fmt(restantePorPagar)}
+              ${fmt(totalRestanteConsolidado)}
             </span>
           </div>
         </div>

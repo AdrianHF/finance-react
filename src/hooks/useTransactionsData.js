@@ -180,9 +180,9 @@ export function useTransactionsData(activeTab, selectedMonth, isTransactionTab, 
     );
   }, [datasetActivo, isProject]);
 
-  // 5. Balance histórico.
+// 5. Balance histórico (ahora también calcula para proyectos sin romper la lógica existente)
   const metricasHistoricas = useMemo(() => {
-    if (isProject) return { balanceTotal: 0, balanceAnterior: 0, balanceTotalALaFecha: 0 };
+    if (!selectedMonth) return { balanceTotal: 0, balanceAnterior: 0, balanceTotalALaFecha: 0 };
 
     const [ano, mes] = selectedMonth.split('-');
     const primerDiaMesSeleccionado = `${ano}-${mes}-01`;
@@ -191,22 +191,28 @@ export function useTransactionsData(activeTab, selectedMonth, isTransactionTab, 
 
     return allTransactionsData.reduce(
       (acc, t) => {
-        const fechaTransaccion = t.date.split('T')[0];
-        acc.balanceTotal += t.amount;
+        const fechaTransaccion = t.date ? t.date.split('T')[0] : '';
+        const monto = Number(t.amount) || 0;
+
+        acc.balanceTotal += monto;
+
         if (fechaTransaccion < primerDiaMesSeleccionado) {
-          acc.balanceAnterior += t.amount;
+          acc.balanceAnterior += monto;
         }
+
         if (fechaTransaccion <= ultimoDiaMesSeleccionado) {
-          acc.balanceTotalALaFecha += t.amount;
+          acc.balanceTotalALaFecha += monto;
         }
+
         return acc;
       },
       { balanceTotal: 0, balanceAnterior: 0, balanceTotalALaFecha: 0 }
     );
-  }, [allTransactionsData, selectedMonth, isProject]);
-
+  }, [allTransactionsData, selectedMonth]);
   const adeudoAnterior = metricasHistoricas.balanceAnterior < 0 ? Math.abs(metricasHistoricas.balanceAnterior) : 0;
   const acumuladoAnterior = metricasHistoricas.balanceAnterior > 0 ? metricasHistoricas.balanceAnterior : 0;
+  
+  // Muestra el adeudo siempre que no esté en "mostrarTodos" y exista un saldo positivo a deber
   const mostrarAdeudoAnterior = !mostrarTodos && adeudoAnterior > 0;
   const mostrarAcumuladoAnterior = !mostrarTodos && acumuladoAnterior > 0;
 
