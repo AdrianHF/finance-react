@@ -216,6 +216,62 @@ export function useTransactionsData(activeTab, selectedMonth, isTransactionTab, 
   const mostrarAdeudoAnterior = !mostrarTodos && adeudoAnterior > 0;
   const mostrarAcumuladoAnterior = !mostrarTodos && acumuladoAnterior > 0;
 
+const TASA_INTERES_MENSUAL = 0.0223333; // 2.23333%
+
+  // Evaluamos si el mes seleccionado está en el rango activo
+  const estaEnRangoInteres = useMemo(() => {
+    if (!selectedMonth) return false;
+    // selectedMonth tiene formato "YYYY-MM"
+    return selectedMonth >= '2025-06' && selectedMonth <= '2026-03';
+  }, [selectedMonth]);
+
+  // Interés individual del mes seleccionado basado en el 'ADEUDO ANTERIOR'
+  const interesMesAnterior = useMemo(() => {
+    if (activeTab !== 'padre' || !estaEnRangoInteres) return 0;
+    return adeudoAnterior * TASA_INTERES_MENSUAL;
+  }, [activeTab, estaEnRangoInteres, adeudoAnterior]);
+
+  // Suma de intereses acumulados hasta el mes seleccionado
+  const interesesAcumulados = useMemo(() => {
+    if (activeTab !== 'padre' || !allTransactionsData.length || !selectedMonth) return 0;
+
+    // Generamos la lista de meses desde '2025-06' hasta el mes activo (máximo '2026-03')
+    const mesLimite = selectedMonth < '2026-03' ? selectedMonth : '2026-03';
+    let totalIntereses = 0;
+
+    // Iteramos mes por mes para calcular el adeudo de cada mes y su respectivo interés
+    let [anoIter, mesIter] = [2025, 6];
+
+    while (true) {
+      const mesStr = `${anoIter}-${String(mesIter).padStart(2, '0')}`;
+      if (mesStr > mesLimite) break;
+
+      // Calculamos cuál era el balance histórico antes de iniciar dicho mes
+      const primerDiaMes = `${mesStr}-01`;
+      const balanceAnteriorMes = allTransactionsData.reduce((acc, t) => {
+        const fechaTx = t.date ? t.date.split('T')[0] : '';
+        const monto = Number(t.amount) || 0;
+        return fechaTx < primerDiaMes ? acc + monto : acc;
+      }, 0);
+
+      const adeudoMes = balanceAnteriorMes < 0 ? Math.abs(balanceAnteriorMes) : 0;
+      totalIntereses += adeudoMes * TASA_INTERES_MENSUAL;
+
+      // Avanzamos al siguiente mes
+      mesIter++;
+      if (mesIter > 12) {
+        mesIter = 1;
+        anoIter++;
+      }
+    }
+
+    return totalIntereses;
+  }, [activeTab, allTransactionsData, selectedMonth]);
+
+
+
+
+
   // 6. Resumen histórico por proyectos (solo aplica para personas).
   const resumenBuckets = useMemo(() => {
     if (isProject) return { proyectos: [], totalDeudaProyectos: 0, totalAportadoPersonal: 0, restaPorPagarGlobal: 0 };
@@ -279,6 +335,9 @@ export function useTransactionsData(activeTab, selectedMonth, isTransactionTab, 
     acumuladoAnterior,
     mostrarAdeudoAnterior,
     mostrarAcumuladoAnterior,
+    interesMesAnterior,
+    interesesAcumulados, 
+  
     resumenBuckets,
     loading,
   };

@@ -130,6 +130,7 @@ function App() {
               {isTransactionTab && (
                 <>
                   <TransactionsTable
+                    activeTab={activeTab} // <-- 1. NUEVA PROP (Necesaria para render condicional)
                     isMobile={isMobile}
                     mostrarTodos={mostrarTodos}
                     sortedData={transactions.sortedData}
@@ -138,6 +139,8 @@ function App() {
                     acumuladoAnterior={transactions.acumuladoAnterior}
                     mostrarAdeudoAnterior={transactions.mostrarAdeudoAnterior}
                     mostrarAcumuladoAnterior={transactions.mostrarAcumuladoAnterior}
+                    interesMesAnterior={transactions.interesMesAnterior} // <-- 2. NUEVA PROP
+                    interesesAcumulados={transactions.interesesAcumulados} // <-- 3. NUEVA PROP
                     requestSort={requestSort}
                     getSortIcon={getSortIcon}
                   />

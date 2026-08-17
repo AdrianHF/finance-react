@@ -17,6 +17,7 @@ import {
  * Pagado Este Mes y Total a Pagar Este Mes.
  */
 export default function TransactionsTable({
+  activeTab, // <-- NUEVA PROP
   isMobile,
   mostrarTodos,
   sortedData,
@@ -25,6 +26,8 @@ export default function TransactionsTable({
   acumuladoAnterior,
   mostrarAdeudoAnterior,
   mostrarAcumuladoAnterior,
+  interesMesAnterior = 0,  // <-- NUEVA PROP (con fallback)
+  interesesAcumulados = 0, // <-- NUEVA PROP (con fallback)
   requestSort,
   getSortIcon,
 }) {
@@ -59,6 +62,37 @@ export default function TransactionsTable({
               <span style={{ color: '#991b1b', fontSize: '15px', fontWeight: '700' }}>${fmt(adeudoAnterior)}</span>
             </div>
           )}
+          
+          
+          {/* ========================================================================= */}
+          {/* BLOQUE EXCLUSIVO PARA TAB 'PADRE' (INTERESES 2.23333%)                    */}
+          {/* ========================================================================= */}
+          {activeTab === 'padre' && (
+            <>
+              {interesMesAnterior > 0 && (
+                <div>
+                  <span style={{ fontSize: '11px', color: '#b45309', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>
+                    Interés Mes Anterior
+                  </span>
+                  <span style={{ color: '#b45309', fontSize: '15px', fontWeight: '700' }}>
+                    ${fmt(interesMesAnterior)}
+                  </span>
+                </div>
+              )}
+
+              {interesesAcumulados > 0 && (
+                <div>
+                  <span style={{ fontSize: '11px', color: '#b45309', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>
+                    Intereses Acumulados
+                  </span>
+                  <span style={{ color: '#b45309', fontSize: '15px', fontWeight: '700' }}>
+                    ${fmt(interesesAcumulados)}
+                  </span>
+                </div>
+              )}
+            </>
+          )}
+          {/* ========================================================================= */}
 
           {mostrarAcumuladoAnterior && (
             <div>
