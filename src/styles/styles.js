@@ -1,16 +1,23 @@
 // src/styles/styles.js
-//
-// Todos los objetos/funciones de estilo que antes vivían al final de
-// App.jsx. Se movieron TAL CUAL (mismos valores, mismos nombres) para
-// no alterar la apariencia actual de la app. Al vivir aquí:
-//  - Dejan de recrearse en cada render de App (antes eran funciones/objetos
-//    definidos en el scope del módulo igualmente, así que en ese aspecto
-//    no cambia nada — pero ahora cualquier componente los puede importar
-//    sin tener que pasarlos por props).
-//  - Es mucho más fácil encontrarlos y ajustarlos sin tener que scrollear
-//    un archivo de 700 líneas.
+/**
+ * @fileoverview Modulo de estilos centralizados de la aplicacion (CSS-in-JS).
+ * Contiene objetos de estilos en linea, funciones generadoras de estilo dinámico 
+ * e inyecciones CSS globales para asegurar consistencia visual y reutilizacion.
+ */
 
+/**
+ * Objeto de reglas CSS-in-JS para react.
+ * @typedef {Object.<string, string|number>} CSSProperties
+ */
+
+/**
+ * Genera el estilo visual para los badges de estado de productos/transacciones.
+ *
+ * @param {'PAGADO'|'POR PAGAR'|'NO DISPONIBLE AUN'|'PRODUCTO INACTIVO'|'NO APLICA'|string} status - Estado actual del elemento.
+ * @returns {CSSProperties} Objeto de estilos dinámicos para el badge.
+ */
 export const getStatusBadgeStyle = (status) => {
+  /** @type {CSSProperties} */
   const baseBadgeStyle = {
     padding: '4px 8px',
     borderRadius: '6px',
@@ -37,7 +44,12 @@ export const getStatusBadgeStyle = (status) => {
   }
 };
 
-// Botón del sidebar (sin márgenes laterales para cubrir todo el ancho)
+/**
+ * Estilo para los botones de navegacion en la barra lateral (Sidebar principal).
+ *
+ * @param {boolean} isActive - Indica si el tab correspondiente esta seleccionado.
+ * @returns {CSSProperties} Estilos del boton del sidebar.
+ */
 export const tabButtonStyle = (isActive) => ({
   width: '100%',
   textAlign: 'left',
@@ -54,7 +66,12 @@ export const tabButtonStyle = (isActive) => ({
   display: 'block',
 });
 
-
+/**
+ * Estilo para los botones de navegacion de Buckets/Proyectos en la barra lateral.
+ *
+ * @param {boolean} isActive - Indica si la pestaña del bucket esta activa.
+ * @returns {CSSProperties} Estilos con esquema de color naranja/coral.
+ */
 export const tabButtonStyleBuckets = (isActive) => ({
   width: '100%',
   textAlign: 'left',
@@ -71,10 +88,12 @@ export const tabButtonStyleBuckets = (isActive) => ({
   display: 'block',
 });
 
-
-
-
-
+/**
+ * Estilo para los botones de la barra de navegacion inferior en dispositivos moviles.
+ *
+ * @param {boolean} isActive - Indica si la opcion del menu movil esta seleccionada.
+ * @returns {CSSProperties} Estilos optimizados para interaccion tactil y diseño flex.
+ */
 export const mobileTabButtonStyle = (isActive) => ({
   flex: 1,
   height: '100%',
@@ -91,7 +110,12 @@ export const mobileTabButtonStyle = (isActive) => ({
   backgroundColor: isActive ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
 });
 
-// Botón de texto para TODOS LOS PAGOS / MES ACTUAL
+/**
+ * Estilo para botones de texto o toggle (ej: "TODOS LOS PAGOS" vs "MES ACTUAL").
+ *
+ * @param {boolean} isHighlighted - Controla si el boton se muestra resaltado o neutro.
+ * @returns {CSSProperties} Estilos para botones de alternancia.
+ */
 export const textButtonStyle = (isHighlighted) => ({
   backgroundColor: isHighlighted ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
   color: isHighlighted ? '#1e3a8a' : '#64748b',
@@ -105,6 +129,10 @@ export const textButtonStyle = (isHighlighted) => ({
   outline: 'none',
 });
 
+/**
+ * Estilos para selectores desplegables con estetica similar a Excel.
+ * @type {CSSProperties}
+ */
 export const excelDropdownStyle = {
   padding: '6px 12px',
   fontSize: '13px',
@@ -117,6 +145,10 @@ export const excelDropdownStyle = {
   outline: 'none',
 };
 
+/**
+ * Contenedor tipo tarjeta para las tablas con vista inspirada en hojas de calculo.
+ * @type {CSSProperties}
+ */
 export const excelCardStyle = {
   backgroundColor: '#ffffff',
   borderRadius: '8px',
@@ -125,6 +157,10 @@ export const excelCardStyle = {
   overflow: 'hidden',
 };
 
+/**
+ * Estilos para encabezados (`<th>`) de tablas estilo Excel.
+ * @type {CSSProperties}
+ */
 export const excelThStyle = {
   padding: '10px 14px',
   fontSize: '11px',
@@ -138,6 +174,10 @@ export const excelThStyle = {
   whiteSpace: 'nowrap',
 };
 
+/**
+ * Estilos para celdas de datos (`<td>`) de tablas estilo Excel.
+ * @type {CSSProperties}
+ */
 export const excelTdStyle = {
   padding: '10px 14px',
   fontSize: '13px',
@@ -147,11 +187,19 @@ export const excelTdStyle = {
   whiteSpace: 'nowrap',
 };
 
+/**
+ * Estilos base para las filas (`<tr>`) en vistas tipo Excel.
+ * @type {CSSProperties}
+ */
 export const excelTrStyle = {
   borderBottom: '1px solid #e2e8f0',
   backgroundColor: '#ffffff',
 };
 
+/**
+ * Estilos para etiquetas pequenas de Buckets / Categorias monetarias.
+ * @type {CSSProperties}
+ */
 export const bucketLabelStyle = {
   backgroundColor: '#f8fafc',
   padding: '2px 6px',
@@ -160,6 +208,10 @@ export const bucketLabelStyle = {
   fontSize: '11px',
 };
 
+/**
+ * Contenedor flex superior para organizar metricas y resumenes financieros.
+ * @type {CSSProperties}
+ */
 export const metricsHeaderContainer = {
   display: 'flex',
   justifyContent: 'space-between',
@@ -168,6 +220,10 @@ export const metricsHeaderContainer = {
   borderBottom: '1px solid #f1f5f9',
 };
 
+/**
+ * Estilos para titulos de seccion dentro del dashboard.
+ * @type {CSSProperties}
+ */
 export const sectionTitleStyle = {
   color: '#0f172a',
   fontSize: '15px',
@@ -175,6 +231,10 @@ export const sectionTitleStyle = {
   letterSpacing: '0.02em',
 };
 
+/**
+ * Estilos para tarjetas en estado vacio o sin datos cargados (Placeholders).
+ * @type {CSSProperties}
+ */
 export const placeholderCardStyle = {
   backgroundColor: '#ffffff',
   border: '1px dashed #cbd5e1',
@@ -184,6 +244,10 @@ export const placeholderCardStyle = {
   color: '#64748b',
 };
 
+/**
+ * Contenedor estandar con sombra ligera para tarjetas de tablas.
+ * @type {CSSProperties}
+ */
 export const tableCardStyle = {
   backgroundColor: '#ffffff',
   borderRadius: '12px',
@@ -191,6 +255,10 @@ export const tableCardStyle = {
   boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
 };
 
+/**
+ * Estilos por defecto para encabezados de tabla estandar (`<th>`).
+ * @type {CSSProperties}
+ */
 export const thStyle = {
   padding: '12px 14px',
   fontSize: '11px',
@@ -203,6 +271,10 @@ export const thStyle = {
   whiteSpace: 'nowrap',
 };
 
+/**
+ * Estilos por defecto para celdas de tabla estandar (`<td>`).
+ * @type {CSSProperties}
+ */
 export const tdStyle = {
   padding: '12px 14px',
   fontSize: '13px',
@@ -211,16 +283,27 @@ export const tdStyle = {
   whiteSpace: 'nowrap',
 };
 
+/**
+ * Transicion dinamica para el comportamiento hover de filas en tablas.
+ * @type {CSSProperties}
+ */
 export const trHoverStyle = {
   transition: 'background-color 0.15s',
 };
 
+/**
+ * Estilo visual para representar valores nulos o guiones vacios (`—`).
+ * @type {CSSProperties}
+ */
 export const emptyDashStyle = {
   color: '#94a3b8',
   fontStyle: 'italic',
 };
 
-// Tooltip de información (i)
+/**
+ * Estilo circular para el icono tooltip de informacion (`i`).
+ * @type {CSSProperties}
+ */
 export const infoIconStyle = {
   display: 'inline-flex',
   alignItems: 'center',
@@ -237,7 +320,10 @@ export const infoIconStyle = {
   userSelect: 'none',
 };
 
-// Barra de progreso de pagos
+/**
+ * Contenedor/Pista base para barras de progreso de liquidez o pago.
+ * @type {CSSProperties}
+ */
 export const progressBarTrackStyle = {
   width: '100%',
   height: '8px',
@@ -246,6 +332,12 @@ export const progressBarTrackStyle = {
   overflow: 'hidden',
 };
 
+/**
+ * Genera el estilo del relleno dinamico de la barra de progreso segun el porcentaje completado.
+ *
+ * @param {number} porcentaje - Porcentaje completado (0 a 100).
+ * @returns {CSSProperties} Estilos del relleno con color dinamico (azul si esta en progreso, verde si llego al 100%).
+ */
 export const progressBarFillStyle = (porcentaje) => ({
   height: '100%',
   width: `${Math.min(100, Math.max(0, porcentaje))}%`,
@@ -254,10 +346,15 @@ export const progressBarFillStyle = (porcentaje) => ({
   transition: 'width 0.3s ease',
 });
 
-// Truco para eliminar las flechas del input[type=number] en Chrome/Safari/
-// Edge/Firefox. Antes se inyectaba con un <style> dentro del JSX del tab
-// ADRIAN; se deja aquí como string para inyectarlo desde el mismo lugar
-// (ver DashboardTab.jsx) sin duplicar la regla si el tab se re-renderiza.
+/**
+ * Regla CSS raw para resetear y ocultar las flechas incrementales (spinners) 
+ * en inputs de tipo numerico en navegadores WebKit y Gecko.
+ *
+ * @type {string}
+ * @example
+ * // Uso en JSX mediante un tag <style>:
+ * <style>{numberInputResetCSS}</style>
+ */
 export const numberInputResetCSS = `
   input[type="number"]::-webkit-inner-spin-button,
   input[type="number"]::-webkit-outer-spin-button {

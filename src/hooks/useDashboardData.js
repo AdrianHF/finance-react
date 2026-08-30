@@ -3,22 +3,55 @@ import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
 
 /**
- * Toda la lógica de datos del tab ADRIAN:
- *  1. Fetch de "products" + su "bank_statement" del mes seleccionado.
- *  2. Cálculo de métricas financieras (pagado / por pagar / total).
- *  3. Ordenamiento tipo Excel de la tabla.
+ * Representación del estado de cuenta bancario asociado a un producto.
+ * @typedef {Object} BankStatement
+ * @property {string|number} bank_statement_id - ID único del estado de cuenta.
+ * @property {string} payday_limit - Fecha límite de pago (formato YYYY-MM-DD).
+ * @property {number|string} amount - Monto numérico o parseable a float.
+ * @property {'PAGADO' | 'POR PAGAR' | 'FALTA CAPTURAR' | 'PRODUCTO INACTIVO'} status - Estado actual del pago.
+ */
+
+/**
+ * Estructura de un producto obtenido desde Supabase.
+ * @typedef {Object} ProductItem
+ * @property {string|number} product_id - ID único del producto.
+ * @property {string} name - Nombre del producto financiero.
+ * @property {BankStatement[]} [bank_statements] - Lista de estados de cuenta asociados.
+ */
+
+/**
+ * Configuración actual del ordenamiento de datos.
+ * @typedef {Object} SortConfig
+ * @property {'name' | 'amount' | 'payday_limit' | 'status' | null} key - Columna por la que se ordenará.
+ * @property {'asc' | 'desc'} direction - Dirección del ordenamiento.
+ */
+
+/**
+ * Resumen consolidado de métricas financieras del Dashboard.
+ * @typedef {Object} MetricasDashboard
+ * @property {number} pagado - Suma de montos con estado 'PAGADO'.
+ * @property {number} porPagar - Suma de montos con estado 'POR PAGAR' o 'FALTA CAPTURAR'.
+ * @property {number} totalGeneral - Suma total general abonada y por abonar del periodo.
+ */
+
+/**
+ * Objeto de retorno expuesto por el Custom Hook `useDashboardData`.
+ * @typedef {Object} UseDashboardDataReturn
+ * @property {ProductItem[]} sortedData - Productos procesados y ordenados según `sortConfig`.
+ * @property {MetricasDashboard} metricasFinancieras - Métricas totales (pagado, por pagar, total general).
+ * @property {boolean} loading - Estado de carga de la petición asíncrona a Supabase.
+ */
+
+/**
+ * Custom Hook que encapsula toda la lógica de datos para la vista/tab "ADRIAN" (Dashboard):
+ * 1. Consulta la lista de productos y sus estados de cuenta en Supabase para el mes seleccionado.
+ * 2. Calcula automáticamente los totales financieros (pagado, por pagar, total general).
+ * 3. Aplica ordenamiento a la tabla según la clave de propiedad y dirección especificada.
  *
- * Antes esto vivía disperso en 3 partes distintas de App.jsx (un
- * useEffect y dos useMemo). Juntarlo en un hook por-tab hace que:
- *  - App.jsx ya no necesite saber CÓMO se consiguen los datos de ADRIAN,
- *    solo que existe `useDashboardData(...)` y le regresa lo que la UI
- *    necesita.
- *  - Si el día de mañana ADRIAN se muda a su propia página, este hook
- *    se puede llevar tal cual.
- *
- * @param {string} activeTab - tab actualmente seleccionado en la app.
- * @param {string} selectedMonth - mes seleccionado, formato "YYYY-MM".
- * @param {{key: string, direction: 'asc'|'desc'}} sortConfig
+ * @param {string} activeTab - Tab activo en la UI (solo ejecuta la petición si es igual a `'dashboard'`).
+ * @param {string} selectedMonth - Mes en consulta formateado como `"YYYY-MM"`.
+ * @param {SortConfig} sortConfig - Criterio actual de ordenamiento de la tabla.
+ * @returns {UseDashboardDataReturn} Objeto que contiene los datos listos para renderizar y el estado de carga.
  */
 export function useDashboardData(activeTab, selectedMonth, sortConfig) {
   const [productosData, setProductosData] = useState([]);

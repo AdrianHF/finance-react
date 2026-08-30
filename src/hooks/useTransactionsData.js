@@ -9,6 +9,10 @@ import {
   TAB_NAMES 
 } from '../config/constants';
 
+/**
+ * Consulta SQL/PostgREST base para la tabla de transacciones.
+ * @type {string}
+ */
 const TRANSACTIONS_SELECT = `
   transaction_id, 
   amount, 
@@ -19,11 +23,82 @@ const TRANSACTIONS_SELECT = `
   money_buckets!money_bucket(name), 
   payers_loaners!payer_loaner(name),
   products!product(name)
-  `
-;
+  `;
 
 /**
- * Convierte los registros crudos de Supabase en objetos listos para la UI.
+ * Representación de una transacción formateada para la interfaz de usuario.
+ * @typedef {Object} ProcessedTransaction
+ * @property {string|number} transaction_id - ID único de la transacción.
+ * @property {number} amount - Monto formateado (positivo para abonado/personal, negativo para cargos).
+ * @property {string} date - Fecha de la transacción en formato YYYY-MM-DD.
+ * @property {string} [description] - Descripción opcional del movimiento.
+ * @property {number} money_bucket - ID del bucket monetario asociado.
+ * @property {number} payer_loaner - ID del pagador/prestamista asociado.
+ * @property {string} money_bucket_name - Nombre del bucket monetario o fallback.
+ * @property {string} product_name - Nombre del producto o '—'.
+ * @property {string} payer_loaner_name - Nombre del pagador/prestamista o '—'.
+ */
+
+/**
+ * Resumen mensual de métricas financieras.
+ * @typedef {Object} MetricasResumen
+ * @property {number} pagado - Suma de montos abonados en el periodo.
+ * @property {number} porPagar - Monto restante por liquidar en el mes.
+ * @property {number} totalMensual - Total bruto del mes.
+ */
+
+/**
+ * Métricas históricas de balance general.
+ * @typedef {Object} MetricasHistoricas
+ * @property {number} balanceTotal - Suma acumulada de todos los movimientos.
+ * @property {number} balanceAnterior - Balance acumulado antes del inicio del mes seleccionado.
+ * @property {number} balanceTotalALaFecha - Balance acumulado hasta el final del mes seleccionado.
+ */
+
+/**
+ * Desglose de un proyecto en el resumen por buckets.
+ * @typedef {Object} ProyectoResumenItem
+ * @property {number} id - ID del bucket del proyecto.
+ * @property {string} name - Nombre del bucket.
+ * @property {number} deudaTotal - Suma total de los cargos generados.
+ * @property {number} totalCuotas - Número total de cuotas registradas.
+ * @property {number} cuotasCompletadas - Número de cuotas con fecha anterior o igual a hoy.
+ * @property {number} montoTotalCobrado - Total cobrado acumulado.
+ * @property {number} montoCompletado - Monto acumulado de cuotas con fecha pasada.
+ */
+
+/**
+ * Resumen global de proyectos para pestañas de usuarios/personas.
+ * @typedef {Object} ResumenBuckets
+ * @property {ProyectoResumenItem[]} proyectos - Arreglo de proyectos ordenados por deuda total descendente.
+ * @property {number} totalDeudaProyectos - Suma total de deudas en proyectos.
+ * @property {number} totalAportadoPersonal - Suma total abonada al bucket personal.
+ * @property {number} restaPorPagarGlobal - Diferencia global entre deuda de proyectos y aportes personales.
+ */
+
+/**
+ * Firma de retorno expuesta por el Custom Hook `useTransactionsData`.
+ * @typedef {Object} UseTransactionsDataReturn
+ * @property {ProcessedTransaction[]} sortedData - Arreglo de transacciones procesadas y ordenadas.
+ * @property {MetricasResumen} metricasResumen - Métricas financieras del dataset activo.
+ * @property {number} adeudoAnterior - Saldo negativo acumulado antes del mes seleccionado (valor absoluto).
+ * @property {number} acumuladoAnterior - Saldo positivo acumulado a favor antes del mes seleccionado.
+ * @property {boolean} mostrarAdeudoAnterior - Indica si se debe mostrar el bloque de adeudo anterior.
+ * @property {boolean} mostrarAcumuladoAnterior - Indica si se debe mostrar el bloque de acumulado anterior.
+ * @property {number} interesMesAnterior - Interés mensual calculado sobre el adeudo anterior (exclusivo tab 'padre').
+ * @property {number} interesesAcumulados - Intereses acumulados desde 2025-06 hasta la fecha (exclusivo tab 'padre').
+ * @property {ResumenBuckets} resumenBuckets - Desglose del resumen histórico por proyectos.
+ * @property {boolean} loading - Estado de carga de la petición asíncrona a Supabase.
+ */
+
+/**
+ * Convierte los registros crudos de Supabase en objetos listos para la UI,
+ * invirtiendo signos según sea un tab de Proyecto o de Persona/Bucket Personal.
+ *
+ * @param {Array<Object>} data - Transacciones crudas devueltas por Supabase.
+ * @param {string} activeTab - Tab actual de la aplicación.
+ * @param {function(Object): string} fallbackBucketName - Callback para generar nombre alternativo de bucket.
+ * @returns {ProcessedTransaction[]} Lista de transacciones adaptadas para visualización.
  */
 function procesarTransacciones(data, activeTab, fallbackBucketName) {
   const isProject = PROJECT_TABS.includes(activeTab);
@@ -50,7 +125,16 @@ function procesarTransacciones(data, activeTab, fallbackBucketName) {
 }
 
 /**
- * Hook universal de transacciones (Personas y Proyectos)
+ * Custom Hook universal para la gestión de transacciones (Personas y Proyectos).
+ * Maneja las consultas mensuales e históricas en Supabase, el cálculo de balances,
+ * deudas anteriores, acumulación de intereses (tab 'padre') y ordenamiento dinámico.
+ *
+ * @param {string} activeTab - Tab activo en la aplicación.
+ * @param {string} selectedMonth - Mes seleccionado en formato `"YYYY-MM"`.
+ * @param {boolean} isTransactionTab - Flag que indica si el tab activo es de tipo transacción.
+ * @param {boolean} mostrarTodos - Si es `true` utiliza el histórico completo, si es `false` solo el mes.
+ * @param {import('./useSortConfig').SortConfig} sortConfig - Configuración actual de ordenamiento.
+ * @returns {UseTransactionsDataReturn} Objeto de estado y datos financieros procesados.
  */
 export function useTransactionsData(activeTab, selectedMonth, isTransactionTab, mostrarTodos, sortConfig) {
   const [transactionsData, setTransactionsData] = useState([]);
@@ -154,7 +238,7 @@ export function useTransactionsData(activeTab, selectedMonth, isTransactionTab, 
     return sortableItems;
   }, [datasetActivo, sortConfig]);
 
-// 4. Métricas del dataset activo.
+  // 4. Métricas del dataset activo.
   const metricasResumen = useMemo(() => {
     return datasetActivo.reduce(
       (totales, t) => {
@@ -180,7 +264,7 @@ export function useTransactionsData(activeTab, selectedMonth, isTransactionTab, 
     );
   }, [datasetActivo, isProject]);
 
-// 5. Balance histórico (ahora también calcula para proyectos sin romper la lógica existente)
+  // 5. Balance histórico (ahora también calcula para proyectos sin romper la lógica existente)
   const metricasHistoricas = useMemo(() => {
     if (!selectedMonth) return { balanceTotal: 0, balanceAnterior: 0, balanceTotalALaFecha: 0 };
 
@@ -209,6 +293,7 @@ export function useTransactionsData(activeTab, selectedMonth, isTransactionTab, 
       { balanceTotal: 0, balanceAnterior: 0, balanceTotalALaFecha: 0 }
     );
   }, [allTransactionsData, selectedMonth]);
+
   const adeudoAnterior = metricasHistoricas.balanceAnterior < 0 ? Math.abs(metricasHistoricas.balanceAnterior) : 0;
   const acumuladoAnterior = metricasHistoricas.balanceAnterior > 0 ? metricasHistoricas.balanceAnterior : 0;
   
@@ -216,7 +301,7 @@ export function useTransactionsData(activeTab, selectedMonth, isTransactionTab, 
   const mostrarAdeudoAnterior = !mostrarTodos && adeudoAnterior > 0;
   const mostrarAcumuladoAnterior = !mostrarTodos && acumuladoAnterior > 0;
 
-const TASA_INTERES_MENSUAL = 0.0223333; // 2.23333%
+  const TASA_INTERES_MENSUAL = 0.0223333; // 2.23333%
 
   // Evaluamos si el mes seleccionado está en el rango activo
   const estaEnRangoInteres = useMemo(() => {
@@ -267,10 +352,6 @@ const TASA_INTERES_MENSUAL = 0.0223333; // 2.23333%
 
     return totalIntereses;
   }, [activeTab, allTransactionsData, selectedMonth]);
-
-
-
-
 
   // 6. Resumen histórico por proyectos (solo aplica para personas).
   const resumenBuckets = useMemo(() => {
@@ -336,8 +417,7 @@ const TASA_INTERES_MENSUAL = 0.0223333; // 2.23333%
     mostrarAdeudoAnterior,
     mostrarAcumuladoAnterior,
     interesMesAnterior,
-    interesesAcumulados, 
-  
+    interesesAcumulados,
     resumenBuckets,
     loading,
   };

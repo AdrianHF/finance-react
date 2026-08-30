@@ -1,10 +1,10 @@
 // src/App.jsx
-//
-// Componente raíz de "Dineros". Después de la modularización, App.jsx
-// ya NO sabe cómo se consiguen los datos de Supabase ni cómo se ven las
-// tablas por dentro: solo mantiene el estado de navegación (tab activo,
-// mes seleccionado, etc.), conecta los hooks de datos con los
-// componentes de presentación, y decide qué renderizar según el tab.
+/**
+ * @fileoverview Componente raíz de la aplicación "Dineros".
+ * Gestiona el estado global de navegación, filtros de fecha/modo de visualización,
+ * sincronización de custom hooks con vistas de presentación y diseño adaptativo (Mobile/Desktop).
+ */
+
 import React, { useState, useMemo } from 'react';
 
 import { 
@@ -31,31 +31,52 @@ import ProjectTransactionsTable from './components/ProjectTransactionsTable';
 
 import './index.css';
 
+/**
+ * Componente principal `App`.
+ * Actúa como orquestador y contenedor principal de la aplicación.
+ *
+ * @component
+ * @returns {JSX.Element} Estructura completa de la aplicación con Sidebar/MobileNav, AppHeader y vistas activas.
+ */
 function App() {
   // --- Estado de navegación ---
+  /** @type {[string, React.Dispatch<React.SetStateAction<string>>]} Tab o vista activa actual */
   const [activeTab, setActiveTab] = useState('dashboard');
+
+  /** @type {[boolean, React.Dispatch<React.SetStateAction<boolean>>]} Control de apertura del submenú de usuarios ("Pulgosas") */
   const [pulgosasOpen, setPulgosasOpen] = useState(false);
+
+  /** @type {[boolean, React.Dispatch<React.SetStateAction<boolean>>]} Control de apertura del submenú de proyectos ("Cubetas") */
   const [cubetasOpen, setCubetasOpen] = useState(false);
+
+  /** @type {boolean} Flag que determina si la pantalla es de tamaño móvil (<= 768px) */
   const isMobile = useIsMobile(768);
 
   // --- Estado de filtros compartidos entre tabs ---
+  /** @type {[string, React.Dispatch<React.SetStateAction<string>>]} Mes seleccionado en formato "YYYY-MM" */
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonthString());
+
+  /** @type {[boolean, React.Dispatch<React.SetStateAction<boolean>>]} Modode vista: true para histórico completo, false para mes activo */
   const [mostrarTodos, setMostrarTodos] = useState(false);
+
+  /** @type {[string|number, React.Dispatch<React.SetStateAction<string|number>>]} Presupuesto o monto libre ingresado en el Dashboard */
   const [montoDisponible, setMontoDisponible] = useState('');
 
   // --- Ordenamiento tipo Excel ---
   const { sortConfig, setSortConfig, requestSort, getSortIcon } = useSortConfig(DEFAULT_SORT_DASHBOARD);
 
-  // Banderas para saber si el tab actual es de Persona o de Proyecto
+  /** @type {boolean} Banderas que determinan el tipo de tab actual */
   const isTransactionTab = TRANSACTION_TABS.includes(activeTab);
   const isProjectTab = PROJECT_TABS.includes(activeTab);
 
-  // Lista fija de meses para el <select>
+  /** 
+   * Opciónes precalculadas de meses para el selector del encabezado.
+   * @type {Array<{value: string, label: string}>} 
+   */
   const monthOptions = useMemo(() => buildMonthOptions(), []);
 
-  // --- Datos del tab activo ---
+  // --- Consulta y procesamiento de datos por tab ---
   const dashboard = useDashboardData(activeTab, selectedMonth, sortConfig);
-  // Nota: Pasamos (isTransactionTab || isProjectTab) para que useTransactionsData se active en ambos tipos de tabs
   const transactions = useTransactionsData(
     activeTab, 
     selectedMonth, 
@@ -64,8 +85,14 @@ function App() {
     sortConfig
   );
 
+  /** @type {boolean} Estado de carga global unificado segun la vista activa */
   const loading = activeTab === 'dashboard' ? dashboard.loading : transactions.loading;
 
+  /**
+   * Cambia la pestaña activa y restablece el criterio de ordenamiento por defecto correspondiente.
+   *
+   * @param {string} tabId - Identificador único de la pestaña a activar.
+   */
   const handleSelectTab = (tabId) => {
     setActiveTab(tabId);
     setSortConfig(tabId === 'dashboard' ? DEFAULT_SORT_DASHBOARD : DEFAULT_SORT_TRANSACTIONS);
@@ -130,7 +157,7 @@ function App() {
               {isTransactionTab && (
                 <>
                   <TransactionsTable
-                    activeTab={activeTab} // <-- 1. NUEVA PROP (Necesaria para render condicional)
+                    activeTab={activeTab}
                     isMobile={isMobile}
                     mostrarTodos={mostrarTodos}
                     sortedData={transactions.sortedData}
@@ -139,8 +166,8 @@ function App() {
                     acumuladoAnterior={transactions.acumuladoAnterior}
                     mostrarAdeudoAnterior={transactions.mostrarAdeudoAnterior}
                     mostrarAcumuladoAnterior={transactions.mostrarAcumuladoAnterior}
-                    interesMesAnterior={transactions.interesMesAnterior} // <-- 2. NUEVA PROP
-                    interesesAcumulados={transactions.interesesAcumulados} // <-- 3. NUEVA PROP
+                    interesMesAnterior={transactions.interesMesAnterior}
+                    interesesAcumulados={transactions.interesesAcumulados}
                     requestSort={requestSort}
                     getSortIcon={getSortIcon}
                   />

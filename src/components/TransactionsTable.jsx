@@ -12,12 +12,52 @@ import {
 } from '../styles/styles';
 
 /**
+ * Objeto con las métricas resumidas del mes actual.
+ * @typedef {Object} MetricasResumen
+ * @property {number} pagado - Monto abonado o pagado en el mes actual.
+ * @property {number} porPagar - Monto restante por pagar o saldo a favor si es negativo.
+ * @property {number} totalMensual - Total acumulado a liquidar en el mes.
+ */
+
+/**
+ * Estructura de un elemento del listado de transacciones.
+ * @typedef {Object} Transaction
+ * @property {string|number} transaction_id - Identificador único de la transacción.
+ * @property {string} date - Fecha formateada de la transacción.
+ * @property {string} [description] - Descripción del movimiento (opcional).
+ * @property {string} money_bucket_name - Nombre de la cubeta de dinero/categoría.
+ * @property {string} product_name - Nombre del producto financiero asociado.
+ * @property {number} amount - Monto numérico (positivos representan abonos, negativos cargos).
+ */
+
+/**
+ * Propiedades del componente TransactionsTable.
+ * @typedef {Object} TransactionsTableProps
+ * @property {string} [activeTab] - Identificador de la pestaña activa (ej. 'padre').
+ * @property {boolean} isMobile - Indica si el renderizado debe ser adaptado a pantallas móviles.
+ * @property {boolean} mostrarTodos - Si es `true` muestra el título "TODOS LOS MOVIMIENTOS", de lo contrario "MOVIMIENTOS DEL MES".
+ * @property {Transaction[]} sortedData - Arreglo de transacciones previamente ordenadas.
+ * @property {MetricasResumen} metricasResumen - Objeto con los totales de pago y saldos del mes.
+ * @property {number} [adeudoAnterior] - Monto del adeudo de periodos pasados.
+ * @property {number} [acumuladoAnterior] - Monto a favor acumulado de periodos pasados.
+ * @property {boolean} mostrarAdeudoAnterior - Alterna la visibilidad de la sección de Adeudo Anterior.
+ * @property {boolean} mostrarAcumuladoAnterior - Alterna la visibilidad de la sección de Acumulado Anterior.
+ * @property {number} [interesMesAnterior=0] - Monto de interés generado el mes previo (exclusivo para tab 'padre').
+ * @property {number} [interesesAcumulados=0] - Monto de intereses acumulados hasta la fecha (exclusivo para tab 'padre').
+ * @property {function(string): void} requestSort - Callback para solicitar el reordenamiento por la columna indicada.
+ * @property {function(string): React.ReactNode} getSortIcon - Función que retorna el ícono visual correspondiente al estado de ordenamiento.
+ */
+
+/**
  * Tabla principal de movimientos (mes seleccionado o histórico completo,
  * según `mostrarTodos`), con el resumen de Adeudo/Acumulado anterior,
  * Pagado Este Mes y Total a Pagar Este Mes.
+ * 
+ * @param {TransactionsTableProps} props - Propiedades del componente.
+ * @returns {JSX.Element} Elemento JSX de la tabla de transacciones con su resumen de métricas.
  */
 export default function TransactionsTable({
-  activeTab, // <-- NUEVA PROP
+  activeTab,
   isMobile,
   mostrarTodos,
   sortedData,
@@ -26,11 +66,16 @@ export default function TransactionsTable({
   acumuladoAnterior,
   mostrarAdeudoAnterior,
   mostrarAcumuladoAnterior,
-  interesMesAnterior = 0,  // <-- NUEVA PROP (con fallback)
-  interesesAcumulados = 0, // <-- NUEVA PROP (con fallback)
+  interesMesAnterior = 0,
+  interesesAcumulados = 0,
   requestSort,
   getSortIcon,
 }) {
+  /**
+   * Formatea un número al estándar monetario en inglés con 2 decimales.
+   * @param {number} n - Número a formatear.
+   * @returns {string} Cadena numérica formateada (ej: "1,234.56").
+   */
   const fmt = (n) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   return (
@@ -43,7 +88,9 @@ export default function TransactionsTable({
           gap: '16px',
         }}
       >
-        <span style={sectionTitleStyle}>{mostrarTodos ? 'TODOS LOS MOVIMIENTOS' : 'MOVIMIENTOS DEL MES'}</span>
+        <span style={sectionTitleStyle}>
+          {mostrarTodos ? 'TODOS LOS MOVIMIENTOS' : 'MOVIMIENTOS DEL MES'}
+        </span>
 
         <div
           style={{
@@ -62,7 +109,6 @@ export default function TransactionsTable({
               <span style={{ color: '#991b1b', fontSize: '15px', fontWeight: '700' }}>${fmt(adeudoAnterior)}</span>
             </div>
           )}
-          
           
           {/* ========================================================================= */}
           {/* BLOQUE EXCLUSIVO PARA TAB 'PADRE' (INTERESES 2.23333%)                    */}

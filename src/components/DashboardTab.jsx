@@ -1,5 +1,6 @@
 // src/components/DashboardTab.jsx
 import React from 'react';
+import PropTypes from 'prop-types';
 import {
   tableCardStyle,
   metricsHeaderContainer,
@@ -13,12 +14,27 @@ import {
 } from '../styles/styles';
 
 /**
- * Tab ADRIAN: tabla de productos/bank_statements del mes, resumen de
- * Pagado/Por Pagar/Total, y la calculadora de Disponible/Faltante.
+ * Componente de pestaña Principal (Dashboard / Vista de Resumen).
+ * 
+ * Es un componente de presentación pura que muestra el estado financiero del mes seleccionado:
+ * 1. Resumen métrico general (Total Pagado, Por Pagar, Total Mensual).
+ * 2. Calculadora interactiva en tiempo real para determinar el saldo faltante contra el monto disponible ingresado.
+ * 3. Tabla detallada de productos/estados de cuenta con ordenamiento por columnas.
  *
- * Todos los datos (sortedData, métricas) y el ordenamiento vienen ya
- * resueltos desde `useDashboardData` en App.jsx; este componente solo
- * se encarga de pintar la UI y de leer/escribir `montoDisponible`.
+ * @component
+ * @param {Object} props - Propiedades del componente.
+ * @param {boolean} props.isMobile - Determina si la interfaz debe adaptarse a pantallas pequeñas.
+ * @param {Array<Object>} props.sortedData - Listado de productos ordenados a renderizar en la tabla.
+ * @param {Object} props.metricasFinancieras - Resumen de importes calculados del mes.
+ * @param {number} props.metricasFinancieras.pagado - Suma acumulada de importes en estado pagado.
+ * @param {number} props.metricasFinancieras.porPagar - Suma acumulada de importes pendientes de pago.
+ * @param {number} props.metricasFinancieras.totalGeneral - Suma total esperada del mes.
+ * @param {string|number} props.montoDisponible - Valor introducido por el usuario para calcular el faltante.
+ * @param {Function} props.onMontoDisponibleChange - Callback al cambiar el input de monto disponible.
+ * @param {Function} props.requestSort - Callback para ordenar la tabla según la clave recibida ('name', 'payday_limit', 'status', 'amount').
+ * @param {Function} props.getSortIcon - Callback que retorna el indicador visual de ordenamiento (flechas asc/desc).
+ * 
+ * @returns {JSX.Element} Vista del Dashboard del usuario.
  */
 export default function DashboardTab({
   isMobile,
@@ -29,14 +45,18 @@ export default function DashboardTab({
   requestSort,
   getSortIcon,
 }) {
+  // Cálculo del faltante (garantiza un mínimo de 0 para evitar valores negativos)
   const faltante = Math.max(0, metricasFinancieras.porPagar - (parseFloat(montoDisponible) || 0));
+  
+  // Bandera para ajustar dinámicamente el estilo del faltante (verde si está cubierto, ámbar si aún falta)
   const faltanteEsCero = metricasFinancieras.porPagar - (parseFloat(montoDisponible) || 0) <= 0;
 
   return (
     <div style={{ ...tableCardStyle, padding: isMobile ? '16px' : '24px' }}>
-      {/* Reset de las flechitas del input number (Chrome/Safari/Edge/Firefox) */}
+      {/* Reset global para ocultar los spinners/flechas por defecto del input[type="number"] */}
       <style>{numberInputResetCSS}</style>
 
+      {/* Sección de Encabezado: Título y Tarjetas de Métricas */}
       <div
         style={{
           ...metricsHeaderContainer,
@@ -58,6 +78,7 @@ export default function DashboardTab({
             alignItems: isMobile ? 'stretch' : 'center',
           }}
         >
+          {/* Métrica: Pagado */}
           <div>
             <span style={{ fontSize: '11px', color: '#11532a', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>
               Pagado
@@ -67,6 +88,7 @@ export default function DashboardTab({
             </span>
           </div>
 
+          {/* Métrica: Por Pagar */}
           <div>
             <span style={{ fontSize: '11px', color: '#991b1b', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>
               Por Pagar
@@ -76,6 +98,7 @@ export default function DashboardTab({
             </span>
           </div>
 
+          {/* Métrica: Total Mensual */}
           <div
             style={{
               borderLeft: isMobile ? 'none' : '1px solid #e2e8f0',
@@ -92,7 +115,7 @@ export default function DashboardTab({
             </span>
           </div>
 
-          {/* Calculadora de restante */}
+          {/* Métrica / Calculadora rápida: Disponible vs Faltante */}
           <div
             style={{
               borderLeft: isMobile ? 'none' : '1px solid #e2e8f0',
@@ -105,6 +128,7 @@ export default function DashboardTab({
               alignItems: 'stretch',
             }}
           >
+            {/* Campo editable: Disponible */}
             <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '11px', color: '#475569', fontWeight: '600', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
                 DISPONIBLE
@@ -127,6 +151,8 @@ export default function DashboardTab({
                 }}
               />
             </div>
+
+            {/* Resultado calculado: Faltante */}
             <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '11px', color: '#475569', fontWeight: '600', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
                 FALTANTE
@@ -141,18 +167,28 @@ export default function DashboardTab({
         </div>
       </div>
 
+      {/* Tabla Principal de Registros Mensuales */}
       <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: isMobile ? '500px' : 'auto' }}>
           <thead>
             <tr>
-              <th style={thStyle} onClick={() => requestSort('name')}>Producto {getSortIcon('name')}</th>
-              <th style={thStyle} onClick={() => requestSort('payday_limit')}>Fecha Límite {getSortIcon('payday_limit')}</th>
-              <th style={thStyle} onClick={() => requestSort('status')}>Estado {getSortIcon('status')}</th>
-              <th style={{ ...thStyle, textAlign: 'right' }} onClick={() => requestSort('amount')}>Monto {getSortIcon('amount')}</th>
+              <th style={thStyle} onClick={() => requestSort('name')}>
+                Producto {getSortIcon('name')}
+              </th>
+              <th style={thStyle} onClick={() => requestSort('payday_limit')}>
+                Fecha Límite {getSortIcon('payday_limit')}
+              </th>
+              <th style={thStyle} onClick={() => requestSort('status')}>
+                Estado {getSortIcon('status')}
+              </th>
+              <th style={{ ...thStyle, textAlign: 'right' }} onClick={() => requestSort('amount')}>
+                Monto {getSortIcon('amount')}
+              </th>
             </tr>
           </thead>
           <tbody>
             {sortedData.map((item) => {
+              // Obtiene el estado de cuenta correspondiente al período actual (si existe)
               const statement = item.bank_statements && item.bank_statements[0];
               const tieneInformacionEsteMes = !!statement;
               const currentStatus = tieneInformacionEsteMes ? statement.status : 'FALTA CAPTURAR';
@@ -160,15 +196,24 @@ export default function DashboardTab({
 
               return (
                 <tr key={item.product_id || item.id} style={trHoverStyle}>
+                  {/* Nombre del producto */}
                   <td style={{ ...tdStyle, fontWeight: '500' }}>{item.name}</td>
+                  
+                  {/* Fecha Límite de Pago */}
                   <td style={tdStyle}>
                     {tieneInformacionEsteMes && !esInactivoONoAplica && statement.payday_limit
                       ? statement.payday_limit
                       : <span style={emptyDashStyle}>—</span>}
                   </td>
+                  
+                  {/* Badge de Estado del Pago */}
                   <td style={tdStyle}>
-                    <span style={getStatusBadgeStyle(currentStatus)}>{currentStatus.replace(/_/g, ' ')}</span>
+                    <span style={getStatusBadgeStyle(currentStatus)}>
+                      {currentStatus.replace(/_/g, ' ')}
+                    </span>
                   </td>
+                  
+                  {/* Monto del Estado de Cuenta */}
                   <td style={{ ...tdStyle, textAlign: 'right', fontWeight: '600' }}>
                     {tieneInformacionEsteMes && !esInactivoONoAplica && statement.amount !== null
                       ? `$${parseFloat(statement.amount).toFixed(2)}`

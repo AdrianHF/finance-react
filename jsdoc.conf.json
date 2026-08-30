@@ -1,0 +1,13 @@
+{
+  "source": {
+    "include": ["src"],
+    "includePattern": ".+\\.(js|jsx)$",
+    "excludePattern": "(node_modules|dist|build)"
+  },
+  "plugins": ["node_modules/jsdoc-babel"],
+  "babel": {
+    "extensions": ["jsx", "js"],
+    "babelrc": false,
+    "presets": ["@babel/preset-react"]
+  }
+}
