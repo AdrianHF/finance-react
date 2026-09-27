@@ -1,4 +1,17 @@
-// src/components/Sidebar.jsx
+/**
+ * @file Sidebar.jsx
+ * @component Sidebar
+ * @description Navegación lateral fija para pantallas de escritorio con soporte para pestañas y grupos desplegables.
+ *
+ * Funcionalidades Clave:
+ * - Renderiza la barra de navegación lateral y el logotipo de la aplicación
+ * - Permite alternar entre pestañas principales y de usuario de forma dinámica
+ * - Gestiona la apertura y cierre de grupos colapsables como Pulgosas y Cubetas
+ * - Delega el control del estado activo al componente padre mediante callbacks
+ *
+ * @returns {JSX.Element} Barra de navegación lateral fija para escritorio.
+ */
+
 import React from 'react';
 import PropTypes from 'prop-types';
 import { tabButtonStyle, tabButtonStyleBuckets } from '../styles/styles';

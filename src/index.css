@@ -1,4 +1,14 @@
-/* src/index.css */
+<!--
+@file index.css
+@description Hoja de estilos global para la aplicación con reseteo CSS y configuración base.
+
+Funcionalidades Clave:
+- Reseteo universal de márgenes, paddings y box-sizing
+- Definición de la fuente tipográfica predeterminada (Segoe UI y alternativas)
+- Configuración del color de fondo general para la interfaz
+- Establecimiento del color de texto principal oscuro para legibilidad
+-->
+
 * {
   margin: 0;
   padding: 0;

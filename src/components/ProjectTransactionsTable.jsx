@@ -1,4 +1,18 @@
-// src/components/ProjectTransactionsTable.jsx
+/**
+ * @file ProjectTransactionsTable.jsx
+ * @component ProjectTransactionsTable
+ * @description Muestra la tabla de transacciones de un proyecto y calcula métricas financieras en tiempo de render.
+ *
+ * Funcionalidades Clave:
+ * - Renderiza el historial detallado de movimientos (abonos y cargos) con soporte responsivo.
+ * - Calcula dinámicamente el monto total pagado en el mes mediante abonos positivos.
+ * - Calcula el saldo restante por pagar del periodo actual y la deuda total consolidada.
+ * - Soporta ordenamiento interactivo de columnas mediante callbacks externos.
+ * - Formatea importes monetarios y aplica indicadores visuales según el estado de los saldos.
+ *
+ * @returns {JSX.Element} Vista de tabla con el listado de movimientos y métricas consolidadas.
+ */
+
 import React from 'react';
 import PropTypes from 'prop-types';
 import {

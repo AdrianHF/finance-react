@@ -1,4 +1,17 @@
-// src/hooks/useTransactionsData.js
+/**
+ * @file useTransactionsData.js
+ * @component useTransactionsData
+ * @description Hook universal para gestionar datos de transacciones financieras desde Supabase, permitiendo filtrado por mes y cálculo de métricas.
+ *
+ * Funcionalidades Clave:
+ * - Consulta el histórico completo de transacciones desde Supabase según la pestaña activa (persona o proyecto).
+ * - Filtra y procesa los datos en memoria para el mes seleccionado o de manera global.
+ * - Calcula métricas de resumen, balance histórico, intereses acumulados y resumen por buckets/proyectos.
+ * - Proporciona ordenamiento de datos configurable al estilo tabla Excel.
+ *
+ * @returns {Object} Objeto con datos ordenados, métricas financieras, estados de carga y resúmenes históricos.
+ */
+
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
 import {

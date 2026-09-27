@@ -1,8 +1,16 @@
-// src/utils/dateUtils.js
-//
-// Funciones puras relacionadas a fechas. Al ser funciones puras (mismo
-// input -> mismo output, sin tocar estado de React) se pueden probar
-// de forma aislada y reutilizar en cualquier parte de la app.
+/**
+ * @file dateUtils.js
+ * @component dateUtils
+ * @description Utilidades para la gestión, formato y generación de opciones de meses en la aplicación.
+ *
+ * Funcionalidades Clave:
+ * - Obtiene el mes actual en formato "YYYY-MM" para valores por defecto.
+ * - Construye un listado de opciones de meses para elementos selectores.
+ * - Formatea los nombres de los meses en español y en mayúsculas.
+ * - Utiliza una fecha de inicio predefinida para generar un rango histórico de meses.
+ *
+ * @returns {Object} Conjunto de funciones utilitarias relacionadas con fechas.
+ */
 
 /**
  * Regresa el mes actual en formato "YYYY-MM", usado como valor por

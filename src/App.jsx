@@ -1,4 +1,17 @@
-// src/App.jsx
+/**
+ * @file App.jsx
+ * @component App
+ * @description Componente raíz que gestiona el estado global, la navegación y las vistas principales de la aplicación Dineros.
+ *
+ * Funcionalidades Clave:
+ * - Orquestación de pestañas activas y diseño adaptativo para dispositivos móviles y escritorio.
+ * - Gestión de filtros globales de fecha, modo de visualización histórico/mensual y presupuesto.
+ * - Integración de hooks personalizados para la consulta y procesamiento de datos financieros.
+ * - Renderizado condicional de vistas de dashboard, tablas de transacciones y resúmenes de proyectos.
+ *
+ * @returns {JSX.Element} Estructura completa de la aplicación con la navegación, encabezado y contenido dinámico.
+ */
+
 /**
  * @fileoverview Componente raíz de la aplicación "Dineros".
  * Gestiona el estado global de navegación, filtros de fecha/modo de visualización,

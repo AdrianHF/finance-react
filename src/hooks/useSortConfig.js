@@ -1,4 +1,17 @@
-// src/hooks/useSortConfig.js
+/**
+ * @file useSortConfig.js
+ * @component useSortConfig
+ * @description Custom hook que centraliza la lógica de ordenamiento para tablas con alternancia de dirección e íconos.
+ *
+ * Funcionalidades Clave:
+ * - Gestiona el estado de la columna activa y la dirección del ordenamiento.
+ * - Alterna automáticamente entre orden ascendente y descendente al hacer clic en una columna.
+ * - Proporciona una función para actualizar manualmente la configuración de ordenamiento.
+ * - Genera indicadores visuales (flechas) según el estado actual de cada columna.
+ *
+ * @returns {UseSortConfigReturn} Objeto con el estado del ordenamiento y las funciones auxiliares para manipularlo.
+ */
+
 import { useState } from 'react';
 
 /**

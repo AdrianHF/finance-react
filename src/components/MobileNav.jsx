@@ -1,4 +1,17 @@
-// src/components/MobileNav.jsx
+/**
+ * @file MobileNav.jsx
+ * @component MobileNav
+ * @description Barra de navegación inferior fija diseñada exclusivamente para dispositivos móviles.
+ *
+ * Funcionalidades Clave:
+ * - Posicionamiento fijo en la parte inferior del viewport con sombra y elevación (zIndex).
+ * - Renderizado dinámico de pestañas a partir de una configuración centralizada (MOBILE_TABS).
+ * - Emisión de eventos al componente padre mediante un callback al seleccionar una pestaña.
+ * - Sincronización visual del estado activo/inactivo en cada botón de navegación.
+ *
+ * @returns {JSX.Element} Barra de navegación fija inferior para móviles.
+ */
+
 import React from 'react';
 import PropTypes from 'prop-types';
 import { mobileTabButtonStyle } from '../styles/styles';

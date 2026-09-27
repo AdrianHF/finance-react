@@ -1,4 +1,17 @@
-// src/hooks/useDashboardData.js
+/**
+ * @file useDashboardData.js
+ * @component useDashboardData
+ * @description Hook personalizado que gestiona la obtención, filtrado y cálculo de métricas financieras para el dashboard.
+ *
+ * Funcionalidades Clave:
+ * - Consulta productos y estados de cuenta desde Supabase según el mes y la pestaña activa.
+ * - Calcula automáticamente las métricas financieras (pagado, por pagar, total general).
+ * - Aplica ordenamiento dinámico a los datos de la tabla según múltiples criterios.
+ * - Gestiona el estado de carga durante las peticiones asíncronas.
+ *
+ * @returns {UseDashboardDataReturn} Objeto que contiene los datos ordenados, métricas financieras y estado de carga.
+ */
+
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
 

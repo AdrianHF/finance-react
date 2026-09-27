@@ -1,4 +1,17 @@
-// src/components/AppHeader.jsx
+/**
+ * @file AppHeader.jsx
+ * @component AppHeader
+ * @description Componente de encabezado principal adaptativo que muestra títulos, selector de mes y controles de filtrado.
+ *
+ * Funcionalidades Clave:
+ * - Renderiza dinámicamente el título según la pestaña activa de la aplicación
+ * - Proporciona un selector desplegable para filtrar registros por mes
+ * - Incluye controles de acción rápida para alternar entre "Todos los pagos" y "Mes actual"
+ * - Adapta su diseño estructural y tipográfico para dispositivos móviles y de escritorio
+ *
+ * @returns {JSX.Element} Elemento JSX que contiene la cabecera superior de la aplicación
+ */
+
 import React from 'react';
 import PropTypes from 'prop-types';
 import { TAB_NAMES } from '../config/constants';

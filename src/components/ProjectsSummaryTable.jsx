@@ -1,4 +1,16 @@
-// src/components/ProjectsSummaryTable.jsx
+/**
+ * @file ProjectsSummaryTable.jsx
+ * @component ProjectsSummaryTable
+ * @description Renderiza una tabla resumen de proyectos con barras de progreso de pagos y totales consolidados.
+ *
+ * Funcionalidades Clave:
+ * - Muestra el avance histórico y de cuotas por cada proyecto mediante barras visuales
+ * - Formatea automáticamente los montos monetarios en notación estándar de US
+ * - Presenta un pie de tabla detallado con deuda total, dinero recibido y saldo restante
+ *
+ * @returns {JSX.Element} Tabla de resumen financiero en estilo hoja de cálculo
+ */
+
 import React from 'react';
 import PropTypes from 'prop-types';
 import {

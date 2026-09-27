@@ -1,4 +1,17 @@
-// src/hooks/useIsMobile.js
+/**
+ * @file useIsMobile.js
+ * @component useIsMobile
+ * @description Hook personalizado que detecta si el ancho de la ventana es menor o igual a un breakpoint especificado.
+ *
+ * Funcionalidades Clave:
+ * - Evalúa el ancho del viewport en tiempo real mediante eventos de resize.
+ * - Permite configurar un punto de quiebre (breakpoint) personalizado.
+ * - Limpia los event listeners al desmontar el componente para evitar fugas de memoria.
+ * - Retorna un valor booleano indicando si la vista actual es móvil.
+ *
+ * @returns {boolean} `true` si el ancho actual es menor o igual al breakpoint, de lo contrario `false`.
+ */
+
 import { useState, useEffect } from 'react';
 
 /**

@@ -1,4 +1,17 @@
-// src/components/DashboardTab.jsx
+/**
+ * @file DashboardTab.jsx
+ * @component DashboardTab
+ * @description Muestra el resumen financiero mensual, calculadora de saldo faltante y tabla detallada de pagos.
+ *
+ * Funcionalidades Clave:
+ * - Visualización de métricas generales (Total Pagado, Por Pagar, Total Mensual).
+ * - Calculadora interactiva en tiempo real para determinar el saldo faltante según el monto disponible.
+ * - Tabla detallada de productos y estados de cuenta con soporte para ordenamiento por columnas.
+ * - Adaptabilidad responsive para dispositivos móviles y escritorio.
+ *
+ * @returns {JSX.Element} Vista del Dashboard del usuario.
+ */
+
 import React from 'react';
 import PropTypes from 'prop-types';
 import {

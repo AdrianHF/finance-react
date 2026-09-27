@@ -1,4 +1,17 @@
-// src/config/constants.js
+/**
+ * @file constants.js
+ * @component Constants
+ * @description Centraliza las constantes, mapas y configuraciones globales de la aplicación.
+ *
+ * Funcionalidades Clave:
+ * - Define los nombres visibles y tipos de pestañas disponibles en la interfaz.
+ * - Mapea las pestañas con sus respectivos IDs de pagadores y prestamistas en la base de datos.
+ * - Establece la relación con los Money Buckets personales y de proyectos.
+ * - Clasifica las pestañas según su naturaleza (proyectos o transacciones).
+ * - Configura los parámetros de ordenamiento por defecto para las tablas.
+ *
+ * @returns {Object} Colección de constantes y mapas de configuración global.
+ */
 
 /**
  * @fileoverview Constantes y mapas de configuración global de la aplicación.

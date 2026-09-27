@@ -1,4 +1,17 @@
-// src/components/TransactionsTable.jsx
+/**
+ * @file TransactionsTable.jsx
+ * @component TransactionsTable
+ * @description Tabla principal de movimientos financieros con resumen de métricas y soporte responsivo.
+ *
+ * Funcionalidades Clave:
+ * - Muestra un listado detallado de transacciones ordenables por columna
+ * - Presenta métricas resumidas del mes (pagos, adeudos y totales a liquidar)
+ * - Soporta bloques condicionales exclusivos para la pestaña padre (intereses)
+ * - Se adapta dinámicamente a vistas móviles y de escritorio
+ *
+ * @returns {JSX.Element} Elemento JSX de la tabla de transacciones con su resumen de métricas.
+ */
+
 import React from 'react';
 import {
   tableCardStyle,

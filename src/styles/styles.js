@@ -1,4 +1,17 @@
-// src/styles/styles.js
+/**
+ * @file styles.js
+ * @component StylesModule
+ * @description Modulo centralizado de estilos CSS-in-JS y funciones generadoras de diseño para la aplicación.
+ *
+ * Funcionalidades Clave:
+ * - Proporciona objetos de estilos estáticos para componentes comunes como tarjetas, tablas y botones.
+ * - Incluye funciones generadoras para estilos dinámicos basados en estados o porcentajes.
+ * - Centraliza esquemas visuales consistentes para elementos como badges, barras de progreso y tipografías.
+ * - Define inyecciones de CSS global para utilidades específicas como el reseteo de inputs numéricos.
+ *
+ * @returns {Object} Colección de objetos de estilo y funciones generadoras de CSS-in-JS.
+ */
+
 /**
  * @fileoverview Modulo de estilos centralizados de la aplicacion (CSS-in-JS).
  * Contiene objetos de estilos en linea, funciones generadoras de estilo dinámico 
