@@ -1,13 +1,13 @@
 /**
  * @file styles.js
  * @component StylesModule
- * @description Modulo centralizado de estilos CSS-in-JS y funciones generadoras de diseño para la aplicación.
+ * @description Módulo de estilos centralizados basado en CSS-in-JS para la interfaz de usuario.
  *
  * Funcionalidades Clave:
- * - Proporciona objetos de estilos estáticos para componentes comunes como tarjetas, tablas y botones.
- * - Incluye funciones generadoras para estilos dinámicos basados en estados o porcentajes.
- * - Centraliza esquemas visuales consistentes para elementos como badges, barras de progreso y tipografías.
- * - Define inyecciones de CSS global para utilidades específicas como el reseteo de inputs numéricos.
+ * - Define una paleta de colores corporativa y tokens de diseño reutilizables.
+ * - Proporciona generadores de estilos dinámicos para estados, botones y barras de progreso.
+ * - Incluye conjuntos de estilos estáticos para tablas, tarjetas y elementos tipográficos.
+ * - Centraliza reglas CSS globales y utilidades visuales para mantener la consistencia visual.
  *
  * @returns {Object} Colección de objetos de estilo y funciones generadoras de CSS-in-JS.
  */
@@ -17,6 +17,36 @@
  * Contiene objetos de estilos en linea, funciones generadoras de estilo dinámico 
  * e inyecciones CSS globales para asegurar consistencia visual y reutilizacion.
  */
+
+/**
+ * Tokens de paleta corporativa sobria (Neutral Slate / Blue Accent):
+ * - Neutro base: #f1f5f9 (fondo), #ffffff (superficie), #e2e8f0 / #cbd5e1 (bordes)
+ * - Texto: #0f172a (principal), #334155 (secundario), #64748b (muted), #94a3b8 (desactivado)
+ * - Azul corporativo acento: #3b6ea5 (usado con moderación para estados activos/destacados)
+ */
+
+export const PALETTE = {
+  nav: '#1e293b',
+  navHover: 'rgba(255,255,255,0.08)',
+  navActive: 'rgba(255,255,255,0.12)',
+  accent: '#3b6ea5',
+  accentDark: '#2c5282',
+  pageBg: '#f1f5f9',
+  surface: '#ffffff',
+  border: '#e2e8f0',
+  borderStrong: '#cbd5e1',
+  textPrimary: '#0f172a',
+  textSecondary: '#334155',
+  textMuted: '#64748b',
+  textDisabled: '#94a3b8',
+  success: '#2d6a4f',
+  successBg: '#e2f0ea',
+  danger: '#991b1b',
+  dangerBg: '#fef2f2',
+  warning: '#92400e',
+  warningBg: '#fef3c7',
+  radius: '6px'
+};
 
 /**
  * Objeto de reglas CSS-in-JS para react.
@@ -33,7 +63,7 @@ export const getStatusBadgeStyle = (status) => {
   /** @type {CSSProperties} */
   const baseBadgeStyle = {
     padding: '4px 8px',
-    borderRadius: '6px',
+    borderRadius: PALETTE.radius,
     fontSize: '10px',
     fontWeight: '600',
     textTransform: 'uppercase',
@@ -43,17 +73,17 @@ export const getStatusBadgeStyle = (status) => {
   };
   switch (status) {
     case 'PAGADO':
-      return { ...baseBadgeStyle, backgroundColor: '#b5e2c5', color: '#33704a' };
+      return { ...baseBadgeStyle, backgroundColor: PALETTE.successBg, color: PALETTE.success };
     case 'POR PAGAR':
-      return { ...baseBadgeStyle, backgroundColor: '#e9e4ab', color: '#946128' };
+      return { ...baseBadgeStyle, backgroundColor: PALETTE.warningBg, color: PALETTE.warning };
     case 'NO DISPONIBLE AUN':
-      return { ...baseBadgeStyle, backgroundColor: '#f1f5f9', color: '#475569' };
+      return { ...baseBadgeStyle, backgroundColor: PALETTE.pageBg, color: PALETTE.textMuted };
     case 'PRODUCTO INACTIVO':
-      return { ...baseBadgeStyle, backgroundColor: '#e2e8f0', color: '#94a3b8' };
+      return { ...baseBadgeStyle, backgroundColor: PALETTE.border, color: PALETTE.textMuted };
     case 'NO APLICA':
-      return { ...baseBadgeStyle, backgroundColor: '#cbd5e1', color: '#475569', fontStyle: 'italic' };
+      return { ...baseBadgeStyle, backgroundColor: PALETTE.border, color: PALETTE.textMuted, fontStyle: 'italic' };
     default:
-      return { ...baseBadgeStyle, backgroundColor: '#fef2f2', color: '#991b1b' };
+      return { ...baseBadgeStyle, backgroundColor: PALETTE.dangerBg, color: PALETTE.danger };
   }
 };
 
@@ -72,7 +102,7 @@ export const tabButtonStyle = (isActive) => ({
   fontSize: '15px',
   cursor: 'pointer',
   color: '#ffffff',
-  backgroundColor: isActive ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+  backgroundColor: isActive ? PALETTE.navActive : 'transparent',
   fontWeight: isActive ? '600' : 'normal',
   transition: 'background 0.2s',
   margin: 0,
@@ -83,7 +113,7 @@ export const tabButtonStyle = (isActive) => ({
  * Estilo para los botones de navegacion de Buckets/Proyectos en la barra lateral.
  *
  * @param {boolean} isActive - Indica si la pestaña del bucket esta activa.
- * @returns {CSSProperties} Estilos con esquema de color naranja/coral.
+ * @returns {CSSProperties} Estilos con esquema de color corporativo desaturado.
  */
 export const tabButtonStyleBuckets = (isActive) => ({
   width: '100%',
@@ -94,7 +124,7 @@ export const tabButtonStyleBuckets = (isActive) => ({
   fontSize: '15px',
   cursor: 'pointer',
   color: '#ffffff',
-  backgroundColor: isActive ? '#e9925f' : '#e4a580',
+  backgroundColor: isActive ? PALETTE.navActive : 'transparent',
   fontWeight: isActive ? '600' : 'normal',
   transition: 'background 0.2s',
   margin: 0,
@@ -112,7 +142,7 @@ export const mobileTabButtonStyle = (isActive) => ({
   height: '100%',
   background: 'none',
   border: 'none',
-  color: isActive ? '#ffffff' : '#cbd5e1',
+  color: isActive ? '#ffffff' : PALETTE.textDisabled,
   fontSize: '10px',
   fontWeight: isActive ? '700' : '400',
   display: 'flex',
@@ -120,7 +150,7 @@ export const mobileTabButtonStyle = (isActive) => ({
   justifyContent: 'center',
   alignItems: 'center',
   cursor: 'pointer',
-  backgroundColor: isActive ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+  backgroundColor: isActive ? PALETTE.navActive : 'transparent',
 });
 
 /**
@@ -130,10 +160,10 @@ export const mobileTabButtonStyle = (isActive) => ({
  * @returns {CSSProperties} Estilos para botones de alternancia.
  */
 export const textButtonStyle = (isHighlighted) => ({
-  backgroundColor: isHighlighted ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
-  color: isHighlighted ? '#1e3a8a' : '#64748b',
-  border: isHighlighted ? '1px solid #3b82f6' : '1px solid transparent',
-  borderRadius: '8px',
+  backgroundColor: isHighlighted ? 'rgba(59, 110, 165, 0.1)' : 'transparent',
+  color: isHighlighted ? PALETTE.accentDark : PALETTE.textMuted,
+  border: isHighlighted ? `1px solid ${PALETTE.accent}` : '1px solid transparent',
+  borderRadius: PALETTE.radius,
   padding: '6px 14px',
   fontSize: '12px',
   fontWeight: '600',
@@ -150,10 +180,10 @@ export const excelDropdownStyle = {
   padding: '6px 12px',
   fontSize: '13px',
   fontWeight: '600',
-  color: '#475569',
-  backgroundColor: '#ffffff',
-  border: '1px solid #cbd5e1',
-  borderRadius: '6px',
+  color: PALETTE.textMuted,
+  backgroundColor: PALETTE.surface,
+  border: `1px solid ${PALETTE.borderStrong}`,
+  borderRadius: PALETTE.radius,
   cursor: 'pointer',
   outline: 'none',
 };
@@ -163,9 +193,9 @@ export const excelDropdownStyle = {
  * @type {CSSProperties}
  */
 export const excelCardStyle = {
-  backgroundColor: '#ffffff',
-  borderRadius: '8px',
-  border: '1px solid #cbd5e1',
+  backgroundColor: PALETTE.surface,
+  borderRadius: PALETTE.radius,
+  border: `1px solid ${PALETTE.borderStrong}`,
   boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
   overflow: 'hidden',
 };
@@ -178,9 +208,9 @@ export const excelThStyle = {
   padding: '10px 14px',
   fontSize: '11px',
   fontWeight: '700',
-  color: '#475569',
-  borderBottom: '2px solid #cbd5e1',
-  borderRight: '1px solid #e2e8f0',
+  color: PALETTE.textMuted,
+  borderBottom: `2px solid ${PALETTE.borderStrong}`,
+  borderRight: `1px solid ${PALETTE.border}`,
   cursor: 'pointer',
   textAlign: 'left',
   userSelect: 'none',
@@ -194,9 +224,9 @@ export const excelThStyle = {
 export const excelTdStyle = {
   padding: '10px 14px',
   fontSize: '13px',
-  color: '#334155',
-  borderBottom: '1px solid #e2e8f0',
-  borderRight: '1px solid #f1f5f9',
+  color: PALETTE.textSecondary,
+  borderBottom: `1px solid ${PALETTE.border}`,
+  borderRight: `1px solid ${PALETTE.pageBg}`,
   whiteSpace: 'nowrap',
 };
 
@@ -205,8 +235,8 @@ export const excelTdStyle = {
  * @type {CSSProperties}
  */
 export const excelTrStyle = {
-  borderBottom: '1px solid #e2e8f0',
-  backgroundColor: '#ffffff',
+  borderBottom: `1px solid ${PALETTE.border}`,
+  backgroundColor: PALETTE.surface,
 };
 
 /**
@@ -214,10 +244,10 @@ export const excelTrStyle = {
  * @type {CSSProperties}
  */
 export const bucketLabelStyle = {
-  backgroundColor: '#f8fafc',
+  backgroundColor: PALETTE.surface,
   padding: '2px 6px',
-  borderRadius: '4px',
-  border: '1px solid #e2e8f0',
+  borderRadius: PALETTE.radius,
+  border: `1px solid ${PALETTE.border}`,
   fontSize: '11px',
 };
 
@@ -230,7 +260,7 @@ export const metricsHeaderContainer = {
   justifyContent: 'space-between',
   marginBottom: '20px',
   paddingBottom: '15px',
-  borderBottom: '1px solid #f1f5f9',
+  borderBottom: `1px solid ${PALETTE.pageBg}`,
 };
 
 /**
@@ -238,7 +268,7 @@ export const metricsHeaderContainer = {
  * @type {CSSProperties}
  */
 export const sectionTitleStyle = {
-  color: '#0f172a',
+  color: PALETTE.textPrimary,
   fontSize: '15px',
   fontWeight: '600',
   letterSpacing: '0.02em',
@@ -249,12 +279,12 @@ export const sectionTitleStyle = {
  * @type {CSSProperties}
  */
 export const placeholderCardStyle = {
-  backgroundColor: '#ffffff',
-  border: '1px dashed #cbd5e1',
-  borderRadius: '12px',
+  backgroundColor: PALETTE.surface,
+  border: `1px dashed ${PALETTE.borderStrong}`,
+  borderRadius: PALETTE.radius,
   padding: '40px 20px',
   textAlign: 'center',
-  color: '#64748b',
+  color: PALETTE.textMuted,
 };
 
 /**
@@ -262,9 +292,9 @@ export const placeholderCardStyle = {
  * @type {CSSProperties}
  */
 export const tableCardStyle = {
-  backgroundColor: '#ffffff',
-  borderRadius: '12px',
-  border: '1px solid #e2e8f0',
+  backgroundColor: PALETTE.surface,
+  borderRadius: PALETTE.radius,
+  border: `1px solid ${PALETTE.border}`,
   boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
 };
 
@@ -276,10 +306,10 @@ export const thStyle = {
   padding: '12px 14px',
   fontSize: '11px',
   fontWeight: '600',
-  color: '#64748b',
+  color: PALETTE.textMuted,
   textTransform: 'uppercase',
   textAlign: 'left',
-  borderBottom: '2px solid #e2e8f0',
+  borderBottom: `2px solid ${PALETTE.border}`,
   cursor: 'pointer',
   whiteSpace: 'nowrap',
 };
@@ -291,8 +321,8 @@ export const thStyle = {
 export const tdStyle = {
   padding: '12px 14px',
   fontSize: '13px',
-  color: '#334155',
-  borderBottom: '1px solid #f1f5f9',
+  color: PALETTE.textSecondary,
+  borderBottom: `1px solid ${PALETTE.pageBg}`,
   whiteSpace: 'nowrap',
 };
 
@@ -309,7 +339,7 @@ export const trHoverStyle = {
  * @type {CSSProperties}
  */
 export const emptyDashStyle = {
-  color: '#94a3b8',
+  color: PALETTE.textDisabled,
   fontStyle: 'italic',
 };
 
@@ -324,7 +354,7 @@ export const infoIconStyle = {
   width: '14px',
   height: '14px',
   borderRadius: '50%',
-  backgroundColor: '#cbd5e1',
+  backgroundColor: PALETTE.borderStrong,
   color: '#ffffff',
   fontSize: '10px',
   fontStyle: 'italic',
@@ -340,8 +370,8 @@ export const infoIconStyle = {
 export const progressBarTrackStyle = {
   width: '100%',
   height: '8px',
-  borderRadius: '4px',
-  backgroundColor: '#e2e8f0',
+  borderRadius: PALETTE.radius,
+  backgroundColor: PALETTE.border,
   overflow: 'hidden',
 };
 
@@ -349,13 +379,13 @@ export const progressBarTrackStyle = {
  * Genera el estilo del relleno dinamico de la barra de progreso segun el porcentaje completado.
  *
  * @param {number} porcentaje - Porcentaje completado (0 a 100).
- * @returns {CSSProperties} Estilos del relleno con color dinamico (azul si esta en progreso, verde si llego al 100%).
+ * @returns {CSSProperties} Estilos del relleno con color dinamico (azul corporativo si esta en progreso, verde desaturado si llego al 100%).
  */
 export const progressBarFillStyle = (porcentaje) => ({
   height: '100%',
   width: `${Math.min(100, Math.max(0, porcentaje))}%`,
-  backgroundColor: porcentaje >= 100 ? '#16a34a' : '#3b82f6',
-  borderRadius: '4px',
+  backgroundColor: porcentaje >= 100 ? PALETTE.success : PALETTE.accent,
+  borderRadius: PALETTE.radius,
   transition: 'width 0.3s ease',
 });
 

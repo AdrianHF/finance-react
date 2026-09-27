@@ -1,16 +1,16 @@
 /**
  * @file ProjectTransactionsTable.jsx
  * @component ProjectTransactionsTable
- * @description Muestra la tabla de transacciones de un proyecto y calcula métricas financieras en tiempo de render.
+ * @description Muestra el historial de transacciones y movimientos de un proyecto con métricas financieras dinámicas.
  *
  * Funcionalidades Clave:
- * - Renderiza el historial detallado de movimientos (abonos y cargos) con soporte responsivo.
- * - Calcula dinámicamente el monto total pagado en el mes mediante abonos positivos.
+ * - Calcula y muestra el monto total pagado en el mes actual a partir de abonos positivos.
  * - Calcula el saldo restante por pagar del periodo actual y la deuda total consolidada.
- * - Soporta ordenamiento interactivo de columnas mediante callbacks externos.
- * - Formatea importes monetarios y aplica indicadores visuales según el estado de los saldos.
+ * - Renderiza una tabla responsiva con soporte para scroll horizontal en dispositivos móviles.
+ * - Permite ordenar los registros por columnas de forma interactiva mediante callbacks.
+ * - Formatea importes monetarios y colorea los montos según su signo (positivo/negativo).
  *
- * @returns {JSX.Element} Vista de tabla con el listado de movimientos y métricas consolidadas.
+ * @returns {JSX.Element} Componente de tabla con movimientos y resumen financiero del proyecto.
  */
 
 import React from 'react';
@@ -128,7 +128,7 @@ export default function ProjectTransactionsTable({
               </span>
               <span
                 style={{
-                  color: adeudoAnterior > 0 ? '#dc2626' : '#16a34a',
+                  color: adeudoAnterior > 0 ? '#991b1b' : '#2d6a4f',
                   fontSize: '16px',
                   fontWeight: '800',
                 }}
@@ -177,7 +177,7 @@ export default function ProjectTransactionsTable({
             </span>
             <span
               style={{
-                color: '#16a34a',
+                color: '#2d6a4f',
                 fontSize: '16px',
                 fontWeight: '800',
               }}
@@ -201,7 +201,7 @@ export default function ProjectTransactionsTable({
             </span>
             <span
               style={{
-                color: totalRestanteConsolidado > 0 ? '#dc2626' : '#16a34a',
+                color: totalRestanteConsolidado > 0 ? '#991b1b' : '#2d6a4f',
                 fontSize: '16px',
                 fontWeight: '800',
               }}
@@ -287,7 +287,7 @@ export default function ProjectTransactionsTable({
                       ...tdStyle,
                       textAlign: 'right',
                       fontWeight: '600',
-                      color: t.amount >= 0 ? '#16a34a' : '#dc2626',
+                      color: t.amount >= 0 ? '#2d6a4f' : '#991b1b',
                     }}
                   >
                     {t.amount >= 0 ? '+' : ''}${fmt(t.amount)}
@@ -301,3 +301,13 @@ export default function ProjectTransactionsTable({
     </div>
   );
 }
+
+ProjectTransactionsTable.propTypes = {
+  isMobile: PropTypes.bool,
+  mostrarTodos: PropTypes.bool,
+  sortedData: PropTypes.array,
+  totalMensual: PropTypes.number,
+  adeudoAnterior: PropTypes.number,
+  requestSort: PropTypes.func,
+  getSortIcon: PropTypes.func,
+};

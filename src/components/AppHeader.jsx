@@ -1,15 +1,15 @@
 /**
  * @file AppHeader.jsx
  * @component AppHeader
- * @description Componente de encabezado principal adaptativo que muestra títulos, selector de mes y controles de filtrado.
+ * @description Renderiza el encabezado principal adaptativo con título de vista, selector de mes y controles de filtrado.
  *
  * Funcionalidades Clave:
- * - Renderiza dinámicamente el título según la pestaña activa de la aplicación
- * - Proporciona un selector desplegable para filtrar registros por mes
- * - Incluye controles de acción rápida para alternar entre "Todos los pagos" y "Mes actual"
- * - Adapta su diseño estructural y tipográfico para dispositivos móviles y de escritorio
+ * - Adapta su diseño de forma responsiva entre dispositivos móviles y escritorio.
+ * - Muestra el título correspondiente a la pestaña activa de la aplicación.
+ * - Proporciona un selector dinámico para filtrar datos por mes.
+ * - Incluye controles de acción rápida para alternar entre "Todos los pagos" y "Mes actual".
  *
- * @returns {JSX.Element} Elemento JSX que contiene la cabecera superior de la aplicación
+ * @returns {JSX.Element} Elemento JSX que contiene la cabecera superior de la aplicación.
  */
 
 import React from 'react';
@@ -63,7 +63,7 @@ export default function AppHeader({
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap' }}>
         {/* Título de la pestaña activa */}
-        <h1 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: '600', color: '#1e293b', margin: 0 }}>
+        <h1 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: '600', color: '#0f172a', margin: 0 }}>
           {TAB_NAMES[activeTab]}
         </h1>
 
@@ -112,3 +112,19 @@ export default function AppHeader({
     </header>
   );
 }
+
+AppHeader.propTypes = {
+  activeTab: PropTypes.string.isRequired,
+  isMobile: PropTypes.bool.isRequired,
+  selectedMonth: PropTypes.string.isRequired,
+  onSelectedMonthChange: PropTypes.func.isRequired,
+  monthOptions: PropTypes.arrayOf(
+    PropTypes.shape({
+      value: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  isTransactionTab: PropTypes.bool.isRequired,
+  mostrarTodos: PropTypes.bool.isRequired,
+  onMostrarTodosChange: PropTypes.func.isRequired,
+};

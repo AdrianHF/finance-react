@@ -1,15 +1,15 @@
 /**
  * @file MobileNav.jsx
  * @component MobileNav
- * @description Barra de navegación inferior fija diseñada exclusivamente para dispositivos móviles.
+ * @description Barra de navegación inferior fija optimizada para dispositivos móviles.
  *
  * Funcionalidades Clave:
- * - Posicionamiento fijo en la parte inferior del viewport con sombra y elevación (zIndex).
- * - Renderizado dinámico de pestañas a partir de una configuración centralizada (MOBILE_TABS).
- * - Emisión de eventos al componente padre mediante un callback al seleccionar una pestaña.
- * - Sincronización visual del estado activo/inactivo en cada botón de navegación.
+ * - Posicionamiento fijo en la parte inferior del viewport con sombra y diseño adaptativo.
+ * - Renderizado dinámico de pestañas basado en una configuración centralizada (MOBILE_TABS).
+ * - Manejo de estados activos para resaltar la pestaña seleccionada actualmente.
+ * - Ejecución de callbacks para notificar al componente padre sobre el cambio de pestaña.
  *
- * @returns {JSX.Element} Barra de navegación fija inferior para móviles.
+ * @returns {JSX.Element} Elemento de navegación inferior con botones interactivos.
  */
 
 import React from 'react';
@@ -53,7 +53,7 @@ export default function MobileNav({ activeTab, onSelectTab }) {
         left: 0,
         right: 0,
         height: '65px',
-        backgroundColor: '#465c73',
+        backgroundColor: '#1e293b',
         display: 'flex',
         justifyContent: 'space-around',
         alignItems: 'center',
@@ -74,3 +74,8 @@ export default function MobileNav({ activeTab, onSelectTab }) {
     </nav>
   );
 }
+
+MobileNav.propTypes = {
+  activeTab: PropTypes.string.isRequired,
+  onSelectTab: PropTypes.func.isRequired,
+};

@@ -1,15 +1,15 @@
 /**
  * @file Sidebar.jsx
  * @component Sidebar
- * @description Navegación lateral fija para pantallas de escritorio con soporte para pestañas y grupos desplegables.
+ * @description Navegación lateral para pantallas de escritorio con pestañas y grupos colapsables.
  *
  * Funcionalidades Clave:
- * - Renderiza la barra de navegación lateral y el logotipo de la aplicación
- * - Permite alternar entre pestañas principales y de usuario de forma dinámica
- * - Gestiona la apertura y cierre de grupos colapsables como Pulgosas y Cubetas
- * - Delega el control del estado activo al componente padre mediante callbacks
+ * - Permite cambiar entre las distintas pestañas principales de la aplicación
+ * - Proporciona un grupo desplegable colapsable para las secciones de "Pulgosas"
+ * - Proporciona un grupo desplegable colapsable para las secciones de "Cubetas"
+ * - Delega la gestión del estado de la pestaña activa al componente padre
  *
- * @returns {JSX.Element} Barra de navegación lateral fija para escritorio.
+ * @returns {JSX.Element} Barra de navegación lateral fija para escritorio
  */
 
 import React from 'react';
@@ -48,7 +48,7 @@ export default function Sidebar({
     <aside
       style={{
         width: '260px',
-        backgroundColor: '#465c73',
+        backgroundColor: '#1e293b',
         display: 'flex',
         flexDirection: 'column',
         boxShadow: '2px 0 8px rgba(0, 0, 0, 0.05)',
@@ -138,25 +138,13 @@ export default function Sidebar({
             >
               <button
                 onClick={() => onSelectTab('transacciones')}
-                style={{
-                  ...tabButtonStyle(activeTab === 'transacciones'),
-                  backgroundColor:
-                    activeTab === 'transacciones'
-                      ? '#7fa8e9'
-                      : 'rgb(200, 202, 207)',
-                  color: activeTab === 'transacciones' ? '#ffffff' : '#000000',
-                }}
+                style={tabButtonStyle(activeTab === 'transacciones')}
               >
                 MARIE
               </button>
               <button
                 onClick={() => onSelectTab('ana')}
-                style={{
-                  ...tabButtonStyle(activeTab === 'ana'),
-                  backgroundColor:
-                    activeTab === 'ana' ? '#7fa8e9' : 'rgb(200, 202, 207)',
-                  color: activeTab === 'ana' ? '#ffffff' : '#000000',
-                }}
+                style={tabButtonStyle(activeTab === 'ana')}
               >
                 ANA
               </button>
@@ -188,7 +176,9 @@ export default function Sidebar({
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              backgroundColor: cubetasOpen ? '#ff7003' : '#ff9e54',
+              backgroundColor: cubetasOpen
+                ? 'rgba(255, 255, 255, 0.08)'
+                : 'transparent',
               fontWeight: '600',
               fontSize: '14px',
               border: 'none',
@@ -257,12 +247,6 @@ export default function Sidebar({
               >
                 GASTOS GENERALES TERRENOS
               </button>
-
-
-
-
-
-
             </div>
           )}
         </div>

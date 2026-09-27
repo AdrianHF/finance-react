@@ -67,15 +67,15 @@ FINANCE-REACT
 /**
  * @file App.jsx
  * @component App
- * @description Componente raíz que gestiona el estado global, la navegación y las vistas principales de la aplicación Dineros.
+ * @description Componente raíz que gestiona el estado global, la navegación y las vistas de la aplicación Dineros.
  *
  * Funcionalidades Clave:
- * - Orquestación de pestañas activas y diseño adaptativo para dispositivos móviles y escritorio.
- * - Gestión de filtros globales de fecha, modo de visualización histórico/mensual y presupuesto.
- * - Integración de hooks personalizados para la consulta y procesamiento de datos financieros.
- * - Renderizado condicional de vistas de dashboard, tablas de transacciones y resúmenes de proyectos.
+ * - Orquestación de navegación y pestañas activas (Dashboard, transacciones y proyectos)
+ * - Gestión de filtros globales de fecha y modo de visualización histórico
+ * - Diseño adaptativo con soporte para dispositivos móviles y escritorio
+ * - Integración de hooks personalizados para datos financieros y ordenamiento tipo Excel
  *
- * @returns {JSX.Element} Estructura completa de la aplicación con la navegación, encabezado y contenido dinámico.
+ * @returns {JSX.Element} Estructura completa de la aplicación con barras de navegación y vistas activas
  */
 ```
 
@@ -85,15 +85,15 @@ FINANCE-REACT
 /**
  * @file AppHeader.jsx
  * @component AppHeader
- * @description Componente de encabezado principal adaptativo que muestra títulos, selector de mes y controles de filtrado.
+ * @description Renderiza el encabezado principal adaptativo con título de vista, selector de mes y controles de filtrado.
  *
  * Funcionalidades Clave:
- * - Renderiza dinámicamente el título según la pestaña activa de la aplicación
- * - Proporciona un selector desplegable para filtrar registros por mes
- * - Incluye controles de acción rápida para alternar entre "Todos los pagos" y "Mes actual"
- * - Adapta su diseño estructural y tipográfico para dispositivos móviles y de escritorio
+ * - Adapta su diseño de forma responsiva entre dispositivos móviles y escritorio.
+ * - Muestra el título correspondiente a la pestaña activa de la aplicación.
+ * - Proporciona un selector dinámico para filtrar datos por mes.
+ * - Incluye controles de acción rápida para alternar entre "Todos los pagos" y "Mes actual".
  *
- * @returns {JSX.Element} Elemento JSX que contiene la cabecera superior de la aplicación
+ * @returns {JSX.Element} Elemento JSX que contiene la cabecera superior de la aplicación.
  */
 ```
 
@@ -103,15 +103,16 @@ FINANCE-REACT
 /**
  * @file DashboardTab.jsx
  * @component DashboardTab
- * @description Muestra el resumen financiero mensual, calculadora de saldo faltante y tabla detallada de pagos.
+ * @description Muestra el resumen financiero mensual, una calculadora interactiva de saldo faltante y una tabla detallada de pagos.
  *
  * Funcionalidades Clave:
- * - Visualización de métricas generales (Total Pagado, Por Pagar, Total Mensual).
- * - Calculadora interactiva en tiempo real para determinar el saldo faltante según el monto disponible.
- * - Tabla detallada de productos y estados de cuenta con soporte para ordenamiento por columnas.
- * - Adaptabilidad responsive para dispositivos móviles y escritorio.
+ * - Visualización de métricas generales (Total Pagado, Por Pagar y Total Mensual).
+ * - Calculadora en tiempo real para determinar el saldo faltante según el monto disponible ingresado.
+ * - Tabla interactiva con soporte para ordenamiento por columnas.
+ * - Adaptabilidad de diseño responsivo (modo móvil y escritorio).
+ * - Renderizado dinámico de estados de cuenta y insignias de estatus.
  *
- * @returns {JSX.Element} Vista del Dashboard del usuario.
+ * @returns {JSX.Element} Vista del Dashboard financiero del mes.
  */
 ```
 
@@ -121,15 +122,15 @@ FINANCE-REACT
 /**
  * @file MobileNav.jsx
  * @component MobileNav
- * @description Barra de navegación inferior fija diseñada exclusivamente para dispositivos móviles.
+ * @description Barra de navegación inferior fija optimizada para dispositivos móviles.
  *
  * Funcionalidades Clave:
- * - Posicionamiento fijo en la parte inferior del viewport con sombra y elevación (zIndex).
- * - Renderizado dinámico de pestañas a partir de una configuración centralizada (MOBILE_TABS).
- * - Emisión de eventos al componente padre mediante un callback al seleccionar una pestaña.
- * - Sincronización visual del estado activo/inactivo en cada botón de navegación.
+ * - Posicionamiento fijo en la parte inferior del viewport con sombra y diseño adaptativo.
+ * - Renderizado dinámico de pestañas basado en una configuración centralizada (MOBILE_TABS).
+ * - Manejo de estados activos para resaltar la pestaña seleccionada actualmente.
+ * - Ejecución de callbacks para notificar al componente padre sobre el cambio de pestaña.
  *
- * @returns {JSX.Element} Barra de navegación fija inferior para móviles.
+ * @returns {JSX.Element} Elemento de navegación inferior con botones interactivos.
  */
 ```
 
@@ -139,16 +140,16 @@ FINANCE-REACT
 /**
  * @file ProjectTransactionsTable.jsx
  * @component ProjectTransactionsTable
- * @description Muestra la tabla de transacciones de un proyecto y calcula métricas financieras en tiempo de render.
+ * @description Muestra el historial de transacciones y movimientos de un proyecto con métricas financieras dinámicas.
  *
  * Funcionalidades Clave:
- * - Renderiza el historial detallado de movimientos (abonos y cargos) con soporte responsivo.
- * - Calcula dinámicamente el monto total pagado en el mes mediante abonos positivos.
+ * - Calcula y muestra el monto total pagado en el mes actual a partir de abonos positivos.
  * - Calcula el saldo restante por pagar del periodo actual y la deuda total consolidada.
- * - Soporta ordenamiento interactivo de columnas mediante callbacks externos.
- * - Formatea importes monetarios y aplica indicadores visuales según el estado de los saldos.
+ * - Renderiza una tabla responsiva con soporte para scroll horizontal en dispositivos móviles.
+ * - Permite ordenar los registros por columnas de forma interactiva mediante callbacks.
+ * - Formatea importes monetarios y colorea los montos según su signo (positivo/negativo).
  *
- * @returns {JSX.Element} Vista de tabla con el listado de movimientos y métricas consolidadas.
+ * @returns {JSX.Element} Componente de tabla con movimientos y resumen financiero del proyecto.
  */
 ```
 
@@ -158,14 +159,14 @@ FINANCE-REACT
 /**
  * @file ProjectsSummaryTable.jsx
  * @component ProjectsSummaryTable
- * @description Renderiza una tabla resumen de proyectos con barras de progreso de pagos y totales consolidados.
+ * @description Renderiza una tabla resumen de proyectos con barras de progreso, desglose de cuotas y liquidación global de deudas.
  *
  * Funcionalidades Clave:
- * - Muestra el avance histórico y de cuotas por cada proyecto mediante barras visuales
- * - Formatea automáticamente los montos monetarios en notación estándar de US
- * - Presenta un pie de tabla detallado con deuda total, dinero recibido y saldo restante
+ * - Muestra el avance detallado de cuotas y montos cobrados por cada proyecto registrado
+ * - Incluye una barra de progreso visual interactiva basada en el porcentaje completado
+ * - Presenta totales consolidados de deuda, dinero recibido y saldo pendiente en el pie de página
  *
- * @returns {JSX.Element} Tabla de resumen financiero en estilo hoja de cálculo
+ * @returns {JSX.Element} Tabla responsiva con estilo de hoja de cálculo y métricas financieras
  */
 ```
 
@@ -175,15 +176,15 @@ FINANCE-REACT
 /**
  * @file Sidebar.jsx
  * @component Sidebar
- * @description Navegación lateral fija para pantallas de escritorio con soporte para pestañas y grupos desplegables.
+ * @description Navegación lateral para pantallas de escritorio con pestañas y grupos colapsables.
  *
  * Funcionalidades Clave:
- * - Renderiza la barra de navegación lateral y el logotipo de la aplicación
- * - Permite alternar entre pestañas principales y de usuario de forma dinámica
- * - Gestiona la apertura y cierre de grupos colapsables como Pulgosas y Cubetas
- * - Delega el control del estado activo al componente padre mediante callbacks
+ * - Permite cambiar entre las distintas pestañas principales de la aplicación
+ * - Proporciona un grupo desplegable colapsable para las secciones de "Pulgosas"
+ * - Proporciona un grupo desplegable colapsable para las secciones de "Cubetas"
+ * - Delega la gestión del estado de la pestaña activa al componente padre
  *
- * @returns {JSX.Element} Barra de navegación lateral fija para escritorio.
+ * @returns {JSX.Element} Barra de navegación lateral fija para escritorio
  */
 ```
 
@@ -335,13 +336,13 @@ Funcionalidades Clave:
 /**
  * @file styles.js
  * @component StylesModule
- * @description Modulo centralizado de estilos CSS-in-JS y funciones generadoras de diseño para la aplicación.
+ * @description Módulo de estilos centralizados basado en CSS-in-JS para la interfaz de usuario.
  *
  * Funcionalidades Clave:
- * - Proporciona objetos de estilos estáticos para componentes comunes como tarjetas, tablas y botones.
- * - Incluye funciones generadoras para estilos dinámicos basados en estados o porcentajes.
- * - Centraliza esquemas visuales consistentes para elementos como badges, barras de progreso y tipografías.
- * - Define inyecciones de CSS global para utilidades específicas como el reseteo de inputs numéricos.
+ * - Define una paleta de colores corporativa y tokens de diseño reutilizables.
+ * - Proporciona generadores de estilos dinámicos para estados, botones y barras de progreso.
+ * - Incluye conjuntos de estilos estáticos para tablas, tarjetas y elementos tipográficos.
+ * - Centraliza reglas CSS globales y utilidades visuales para mantener la consistencia visual.
  *
  * @returns {Object} Colección de objetos de estilo y funciones generadoras de CSS-in-JS.
  */

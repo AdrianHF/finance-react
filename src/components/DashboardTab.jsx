@@ -1,15 +1,16 @@
 /**
  * @file DashboardTab.jsx
  * @component DashboardTab
- * @description Muestra el resumen financiero mensual, calculadora de saldo faltante y tabla detallada de pagos.
+ * @description Muestra el resumen financiero mensual, una calculadora interactiva de saldo faltante y una tabla detallada de pagos.
  *
  * Funcionalidades Clave:
- * - Visualización de métricas generales (Total Pagado, Por Pagar, Total Mensual).
- * - Calculadora interactiva en tiempo real para determinar el saldo faltante según el monto disponible.
- * - Tabla detallada de productos y estados de cuenta con soporte para ordenamiento por columnas.
- * - Adaptabilidad responsive para dispositivos móviles y escritorio.
+ * - Visualización de métricas generales (Total Pagado, Por Pagar y Total Mensual).
+ * - Calculadora en tiempo real para determinar el saldo faltante según el monto disponible ingresado.
+ * - Tabla interactiva con soporte para ordenamiento por columnas.
+ * - Adaptabilidad de diseño responsivo (modo móvil y escritorio).
+ * - Renderizado dinámico de estados de cuenta y insignias de estatus.
  *
- * @returns {JSX.Element} Vista del Dashboard del usuario.
+ * @returns {JSX.Element} Vista del Dashboard financiero del mes.
  */
 
 import React from 'react';
@@ -93,10 +94,10 @@ export default function DashboardTab({
         >
           {/* Métrica: Pagado */}
           <div>
-            <span style={{ fontSize: '11px', color: '#11532a', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>
+            <span style={{ fontSize: '11px', color: '#2d6a4f', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>
               Pagado
             </span>
-            <span style={{ color: '#11532a', fontSize: '15px', fontWeight: '700' }}>
+            <span style={{ color: '#2d6a4f', fontSize: '15px', fontWeight: '700' }}>
               ${metricasFinancieras.pagado.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
@@ -120,7 +121,7 @@ export default function DashboardTab({
               paddingTop: isMobile ? '10px' : '0',
             }}
           >
-            <span style={{ fontSize: '11px', color: '#000000', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>
+            <span style={{ fontSize: '11px', color: '#0f172a', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>
               Total Mensual
             </span>
             <span style={{ color: '#0f172a', fontSize: '14px', fontWeight: '800' }}>
@@ -171,7 +172,7 @@ export default function DashboardTab({
                 FALTANTE
               </span>
               <div style={{ height: '31px', display: 'flex', alignItems: 'center' }}>
-                <span style={{ color: faltanteEsCero ? '#11532a' : '#b45309', fontSize: '14px', fontWeight: '800' }}>
+                <span style={{ color: faltanteEsCero ? '#2d6a4f' : '#92400e', fontSize: '14px', fontWeight: '800' }}>
                   ${faltante.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
@@ -241,3 +242,17 @@ export default function DashboardTab({
     </div>
   );
 }
+
+DashboardTab.propTypes = {
+  isMobile: PropTypes.bool.isRequired,
+  sortedData: PropTypes.array.isRequired,
+  metricasFinancieras: PropTypes.shape({
+    pagado: PropTypes.number.isRequired,
+    porPagar: PropTypes.number.isRequired,
+    totalGeneral: PropTypes.number.isRequired,
+  }).isRequired,
+  montoDisponible: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+  onMontoDisponibleChange: PropTypes.func.isRequired,
+  requestSort: PropTypes.func.isRequired,
+  getSortIcon: PropTypes.func.isRequired,
+};
