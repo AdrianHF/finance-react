@@ -1,122 +1,43 @@
 // src/hooks/useTransactionsData.js
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
-import { 
-  PAYER_LOANER_MAP, 
-  PERSONAL_BUCKET_MAP, 
-  PROJECT_BUCKET_MAP, 
-  PROJECT_TABS, 
-  TAB_NAMES 
+import {
+  PAYER_LOANER_MAP,
+  PERSONAL_BUCKET_MAP,
+  PROJECT_BUCKET_MAP,
+  PROJECT_TABS,
+  TAB_NAMES,
 } from '../config/constants';
 
-/**
- * Consulta SQL/PostgREST base para la tabla de transacciones.
- * @type {string}
- */
 const TRANSACTIONS_SELECT = `
-  transaction_id, 
-  amount, 
-  date, 
-  description, 
-  money_bucket, 
-  payer_loaner, 
-  money_buckets!money_bucket(name), 
-  payers_loaners!payer_loaner(name),
+  transaction_id, amount, date, description, money_bucket, payer_loaner,
+  money_buckets!money_bucket(name), payers_loaners!payer_loaner(name),
   products!product(name)
-  `;
+`;
 
-/**
- * Representación de una transacción formateada para la interfaz de usuario.
- * @typedef {Object} ProcessedTransaction
- * @property {string|number} transaction_id - ID único de la transacción.
- * @property {number} amount - Monto formateado (positivo para abonado/personal, negativo para cargos).
- * @property {string} date - Fecha de la transacción en formato YYYY-MM-DD.
- * @property {string} [description] - Descripción opcional del movimiento.
- * @property {number} money_bucket - ID del bucket monetario asociado.
- * @property {number} payer_loaner - ID del pagador/prestamista asociado.
- * @property {string} money_bucket_name - Nombre del bucket monetario o fallback.
- * @property {string} product_name - Nombre del producto o '—'.
- * @property {string} payer_loaner_name - Nombre del pagador/prestamista o '—'.
- */
+const TASA_INTERES_MENSUAL = 0.0223333;
+const INTERES_DESDE = '2025-06';
+const INTERES_HASTA = '2026-03';
 
-/**
- * Resumen mensual de métricas financieras.
- * @typedef {Object} MetricasResumen
- * @property {number} pagado - Suma de montos abonados en el periodo.
- * @property {number} porPagar - Monto restante por liquidar en el mes.
- * @property {number} totalMensual - Total bruto del mes.
- */
+const toDateStr = (d) => (d ? d.split('T')[0] : '');
+const toNum = (v) => parseFloat(v) || 0;
+const primerDiaDeMes = (ym) => `${ym}-01`;
+const ultimoDiaDeMes = (ym) => {
+  const [a, m] = ym.split('-').map(Number);
+  const d = new Date(a, m, 0).getDate();
+  return `${ym}-${String(d).padStart(2, '0')}`;
+};
 
-/**
- * Métricas históricas de balance general.
- * @typedef {Object} MetricasHistoricas
- * @property {number} balanceTotal - Suma acumulada de todos los movimientos.
- * @property {number} balanceAnterior - Balance acumulado antes del inicio del mes seleccionado.
- * @property {number} balanceTotalALaFecha - Balance acumulado hasta el final del mes seleccionado.
- */
-
-/**
- * Desglose de un proyecto en el resumen por buckets.
- * @typedef {Object} ProyectoResumenItem
- * @property {number} id - ID del bucket del proyecto.
- * @property {string} name - Nombre del bucket.
- * @property {number} deudaTotal - Suma total de los cargos generados.
- * @property {number} totalCuotas - Número total de cuotas registradas.
- * @property {number} cuotasCompletadas - Número de cuotas con fecha anterior o igual a hoy.
- * @property {number} montoTotalCobrado - Total cobrado acumulado.
- * @property {number} montoCompletado - Monto acumulado de cuotas con fecha pasada.
- */
-
-/**
- * Resumen global de proyectos para pestañas de usuarios/personas.
- * @typedef {Object} ResumenBuckets
- * @property {ProyectoResumenItem[]} proyectos - Arreglo de proyectos ordenados por deuda total descendente.
- * @property {number} totalDeudaProyectos - Suma total de deudas en proyectos.
- * @property {number} totalAportadoPersonal - Suma total abonada al bucket personal.
- * @property {number} restaPorPagarGlobal - Diferencia global entre deuda de proyectos y aportes personales.
- */
-
-/**
- * Firma de retorno expuesta por el Custom Hook `useTransactionsData`.
- * @typedef {Object} UseTransactionsDataReturn
- * @property {ProcessedTransaction[]} sortedData - Arreglo de transacciones procesadas y ordenadas.
- * @property {MetricasResumen} metricasResumen - Métricas financieras del dataset activo.
- * @property {number} adeudoAnterior - Saldo negativo acumulado antes del mes seleccionado (valor absoluto).
- * @property {number} acumuladoAnterior - Saldo positivo acumulado a favor antes del mes seleccionado.
- * @property {boolean} mostrarAdeudoAnterior - Indica si se debe mostrar el bloque de adeudo anterior.
- * @property {boolean} mostrarAcumuladoAnterior - Indica si se debe mostrar el bloque de acumulado anterior.
- * @property {number} interesMesAnterior - Interés mensual calculado sobre el adeudo anterior (exclusivo tab 'padre').
- * @property {number} interesesAcumulados - Intereses acumulados desde 2025-06 hasta la fecha (exclusivo tab 'padre').
- * @property {ResumenBuckets} resumenBuckets - Desglose del resumen histórico por proyectos.
- * @property {boolean} loading - Estado de carga de la petición asíncrona a Supabase.
- */
-
-/**
- * Convierte los registros crudos de Supabase en objetos listos para la UI,
- * invirtiendo signos según sea un tab de Proyecto o de Persona/Bucket Personal.
- *
- * @param {Array<Object>} data - Transacciones crudas devueltas por Supabase.
- * @param {string} activeTab - Tab actual de la aplicación.
- * @param {function(Object): string} fallbackBucketName - Callback para generar nombre alternativo de bucket.
- * @returns {ProcessedTransaction[]} Lista de transacciones adaptadas para visualización.
- */
+/** Convierte filas crudas de Supabase en transacciones listas para UI. */
 function procesarTransacciones(data, activeTab, fallbackBucketName) {
   const isProject = PROJECT_TABS.includes(activeTab);
-
+  const personalId = PERSONAL_BUCKET_MAP[activeTab];
   return (data || []).map((t) => {
-    const originalAmount = parseFloat(t.amount) || 0;
-    
-    // Para proyectos, conservamos el monto real.
-    // Para personas, invertimos según si es su bucket personal.
-    let finalAmount = originalAmount;
-    if (!isProject) {
-      const esBucketPersonal = t.money_bucket === PERSONAL_BUCKET_MAP[activeTab];
-      finalAmount = esBucketPersonal ? originalAmount : originalAmount * -1;
-    }
-
+    const amount = toNum(t.amount);
+    const esPersonal = t.money_bucket === personalId;
     return {
       ...t,
-      amount: finalAmount,
+      amount: isProject || esPersonal ? amount : -amount,
       money_bucket_name: t.money_buckets?.name || fallbackBucketName(t),
       product_name: t.products?.name || '—',
       payer_loaner_name: t.payers_loaners?.name || '—',
@@ -124,290 +45,200 @@ function procesarTransacciones(data, activeTab, fallbackBucketName) {
   });
 }
 
+function calcularMetricasResumen(dataset, isProject) {
+  return dataset.reduce((acc, t) => {
+    const m = toNum(t.amount);
+    if (isProject) {
+      if (m < 0) acc.totalMensual += Math.abs(m);
+    } else {
+      if (m >= 0) acc.pagado += m;
+      else acc.totalMensual += Math.abs(m);
+      acc.porPagar = acc.totalMensual - acc.pagado;
+    }
+    return acc;
+  }, { pagado: 0, porPagar: 0, totalMensual: 0 });
+}
+
+function calcularBalanceHistorico(data, selectedMonth) {
+  if (!selectedMonth) return { balanceTotal: 0, balanceAnterior: 0, balanceTotalALaFecha: 0 };
+  const ini = primerDiaDeMes(selectedMonth);
+  const fin = ultimoDiaDeMes(selectedMonth);
+  return data.reduce((acc, t) => {
+    const f = toDateStr(t.date);
+    const m = Number(t.amount) || 0;
+    acc.balanceTotal += m;
+    if (f < ini) acc.balanceAnterior += m;
+    if (f <= fin) acc.balanceTotalALaFecha += m;
+    return acc;
+  }, { balanceTotal: 0, balanceAnterior: 0, balanceTotalALaFecha: 0 });
+}
+
+/** Suma de intereses desde 2025-06 hasta `mesLimite`, en un solo recorrido. */
+function calcularInteresesAcumulados(data, mesLimite) {
+  if (!data.length) return 0;
+  const sorted = [...data].sort((a, b) => toDateStr(a.date).localeCompare(toDateStr(b.date)));
+  let total = 0, balance = 0, idx = 0, ano = 2025, mes = 6;
+  while (true) {
+    const ym = `${ano}-${String(mes).padStart(2, '0')}`;
+    if (ym > mesLimite) break;
+    const corte = primerDiaDeMes(ym);
+    while (idx < sorted.length && toDateStr(sorted[idx].date) < corte) {
+      balance += Number(sorted[idx].amount) || 0;
+      idx++;
+    }
+    if (balance < 0) total += Math.abs(balance) * TASA_INTERES_MENSUAL;
+    if (++mes > 12) { mes = 1; ano++; }
+  }
+  return total;
+}
+
+function calcularResumenBuckets(data, activeTab, personalBucketId) {
+  const buckets = {};
+  let totalDeudaProyectos = 0;
+  let totalAportadoPersonal = 0;
+  const hoy = new Date().toISOString().split('T')[0];
+  const tabName = (TAB_NAMES[activeTab] || '').toUpperCase();
+
+  data.forEach((t) => {
+    const bid = t.money_bucket;
+    if (!bid) return;
+    const esPersonal =
+      bid === personalBucketId ||
+      (t.money_bucket_name && tabName && t.money_bucket_name.toUpperCase().includes(tabName));
+
+    if (esPersonal) { totalAportadoPersonal += t.amount; return; }
+
+    const b = (buckets[bid] ||= {
+      id: bid, name: t.money_bucket_name, deudaTotal: 0,
+      totalCuotas: 0, cuotasCompletadas: 0,
+      montoTotalCobrado: 0, montoCompletado: 0,
+    });
+
+    if (t.amount < 0) {
+      const abs = Math.abs(t.amount);
+      b.deudaTotal += abs;
+      b.totalCuotas += 1;
+      b.montoTotalCobrado += abs;
+      if (toDateStr(t.date) <= hoy) { b.cuotasCompletadas += 1; b.montoCompletado += abs; }
+      totalDeudaProyectos += abs;
+    }
+  });
+
+  const proyectos = Object.values(buckets).sort((a, b) => b.deudaTotal - a.deudaTotal);
+  return {
+    proyectos,
+    totalDeudaProyectos,
+    totalAportadoPersonal,
+    restaPorPagarGlobal: totalDeudaProyectos - totalAportadoPersonal,
+  };
+}
+
 /**
- * Custom Hook universal para la gestión de transacciones (Personas y Proyectos).
- * Maneja las consultas mensuales e históricas en Supabase, el cálculo de balances,
- * deudas anteriores, acumulación de intereses (tab 'padre') y ordenamiento dinámico.
- *
- * @param {string} activeTab - Tab activo en la aplicación.
- * @param {string} selectedMonth - Mes seleccionado en formato `"YYYY-MM"`.
- * @param {boolean} isTransactionTab - Flag que indica si el tab activo es de tipo transacción.
- * @param {boolean} mostrarTodos - Si es `true` utiliza el histórico completo, si es `false` solo el mes.
- * @param {import('./useSortConfig').SortConfig} sortConfig - Configuración actual de ordenamiento.
- * @returns {UseTransactionsDataReturn} Objeto de estado y datos financieros procesados.
+ * Hook universal de transacciones (Personas y Proyectos).
+ * Trae el histórico completo desde Supabase y deriva el mes activo en cliente.
  */
 export function useTransactionsData(activeTab, selectedMonth, isTransactionTab, mostrarTodos, sortConfig) {
-  const [transactionsData, setTransactionsData] = useState([]);
   const [allTransactionsData, setAllTransactionsData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const isProject = PROJECT_TABS.includes(activeTab);
   const payerLoaner = PAYER_LOANER_MAP[activeTab];
   const bucketId = PROJECT_BUCKET_MAP[activeTab];
-
-  // Evalúa si el tab activo requiere hacer fetch de transacciones
+  const personalBucketId = PERSONAL_BUCKET_MAP[activeTab];
   const shouldFetch = isTransactionTab || isProject;
 
-  // 1. Transacciones del mes seleccionado.
+  // 1. Única consulta: histórico completo filtrado por proyecto o persona.
   useEffect(() => {
     if (!shouldFetch) return;
+    let cancelado = false;
 
-    const getTransactions = async () => {
+    (async () => {
       try {
         setLoading(true);
-        const [ano, mes] = selectedMonth.split('-');
-        const primerDia = `${ano}-${mes}-01`;
-        const ultimoDia = new Date(ano, mes, 0).toISOString().split('T')[0];
-
-        let query = supabase
-          .from('transactions')
-          .select(TRANSACTIONS_SELECT)
-          .gte('date', primerDia)
-          .lte('date', ultimoDia);
-
-        // Aplica el filtro correcto según si es Proyecto o Persona
-        if (isProject) {
-          query = query.eq('money_bucket', bucketId);
-        } else {
-          query = query.eq('payer_loaner', payerLoaner);
-        }
-
-        const { data, error } = await query;
-
+        let q = supabase.from('transactions').select(TRANSACTIONS_SELECT);
+        q = isProject ? q.eq('money_bucket', bucketId) : q.eq('payer_loaner', payerLoaner);
+        const { data, error } = await q;
         if (error) throw error;
-        setTransactionsData(procesarTransacciones(data, activeTab, () => '—'));
-      } catch (error) {
-        console.error('Error al conectar con Supabase (Transactions):', error.message);
+        if (!cancelado) {
+          setAllTransactionsData(
+            procesarTransacciones(data, activeTab, (t) => `Bucket #${t.money_bucket}`)
+          );
+        }
+      } catch (e) {
+        console.error('Error al traer transacciones:', e.message);
       } finally {
-        setLoading(false);
+        if (!cancelado) setLoading(false);
       }
-    };
+    })();
 
-    getTransactions();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, selectedMonth, shouldFetch]);
-
-  // 2. Histórico completo (todas las fechas).
-  useEffect(() => {
-    if (!shouldFetch) return;
-
-    const getAllTransactions = async () => {
-      try {
-        let query = supabase.from('transactions').select(TRANSACTIONS_SELECT);
-
-        if (isProject) {
-          query = query.eq('money_bucket', bucketId);
-        } else {
-          query = query.eq('payer_loaner', payerLoaner);
-        }
-
-        const { data, error } = await query;
-
-        if (error) throw error;
-        setAllTransactionsData(
-          procesarTransacciones(data, activeTab, (t) => `Bucket #${t.money_bucket}`)
-        );
-      } catch (error) {
-        console.error('Error al traer histórico:', error.message);
-      }
-    };
-
-    getAllTransactions();
+    return () => { cancelado = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, shouldFetch]);
 
-  // Dataset activo: respeta el botón "TODOS LOS PAGOS" vs. mes seleccionado.
+  // 2. Derivamos el mes activo desde el histórico.
+  const transactionsData = useMemo(() => {
+    if (!selectedMonth) return [];
+    const ini = primerDiaDeMes(selectedMonth);
+    const fin = ultimoDiaDeMes(selectedMonth);
+    return allTransactionsData.filter((t) => {
+      const f = toDateStr(t.date);
+      return f >= ini && f <= fin;
+    });
+  }, [allTransactionsData, selectedMonth]);
+
   const datasetActivo = mostrarTodos ? allTransactionsData : transactionsData;
 
   // 3. Ordenamiento tipo Excel.
   const sortedData = useMemo(() => {
-    const sortableItems = [...datasetActivo];
-    if (sortConfig.key !== null) {
-      sortableItems.sort((a, b) => {
-        let aValue = a[sortConfig.key];
-        let bValue = b[sortConfig.key];
-        if (sortConfig.key === 'amount') {
-          aValue = parseFloat(a.amount) || 0;
-          bValue = parseFloat(b.amount) || 0;
-        }
-        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
-        return 0;
-      });
-    }
-    return sortableItems;
+    const items = [...datasetActivo];
+    if (sortConfig.key === null) return items;
+    const dir = sortConfig.direction === 'asc' ? 1 : -1;
+    return items.sort((a, b) => {
+      let av = a[sortConfig.key];
+      let bv = b[sortConfig.key];
+      if (sortConfig.key === 'amount') { av = toNum(av); bv = toNum(bv); }
+      if (av < bv) return -dir;
+      if (av > bv) return dir;
+      return 0;
+    });
   }, [datasetActivo, sortConfig]);
 
   // 4. Métricas del dataset activo.
-  const metricasResumen = useMemo(() => {
-    return datasetActivo.reduce(
-      (totales, t) => {
-        const monto = parseFloat(t.amount) || 0;
+  const metricasResumen = useMemo(
+    () => calcularMetricasResumen(datasetActivo, isProject),
+    [datasetActivo, isProject]
+  );
 
-        if (isProject) {
-          // Si el monto es negativo, lo convertimos a positivo y lo sumamos
-          if (monto < 0) {
-            totales.totalMensual += Math.abs(monto);
-          }
-        } else {
-          // Lógica para personas
-          if (monto >= 0) {
-            totales.pagado += monto;
-          } else {
-            totales.totalMensual += Math.abs(monto);
-          }
-          totales.porPagar = totales.totalMensual - totales.pagado;
-        }
-        return totales;
-      },
-      { pagado: 0, porPagar: 0, totalMensual: 0 }
-    );
-  }, [datasetActivo, isProject]);
-
-  // 5. Balance histórico (ahora también calcula para proyectos sin romper la lógica existente)
-  const metricasHistoricas = useMemo(() => {
-    if (!selectedMonth) return { balanceTotal: 0, balanceAnterior: 0, balanceTotalALaFecha: 0 };
-
-    const [ano, mes] = selectedMonth.split('-');
-    const primerDiaMesSeleccionado = `${ano}-${mes}-01`;
-    const ultimoDiaNum = new Date(Number(ano), Number(mes), 0).getDate();
-    const ultimoDiaMesSeleccionado = `${ano}-${mes}-${String(ultimoDiaNum).padStart(2, '0')}`;
-
-    return allTransactionsData.reduce(
-      (acc, t) => {
-        const fechaTransaccion = t.date ? t.date.split('T')[0] : '';
-        const monto = Number(t.amount) || 0;
-
-        acc.balanceTotal += monto;
-
-        if (fechaTransaccion < primerDiaMesSeleccionado) {
-          acc.balanceAnterior += monto;
-        }
-
-        if (fechaTransaccion <= ultimoDiaMesSeleccionado) {
-          acc.balanceTotalALaFecha += monto;
-        }
-
-        return acc;
-      },
-      { balanceTotal: 0, balanceAnterior: 0, balanceTotalALaFecha: 0 }
-    );
-  }, [allTransactionsData, selectedMonth]);
+  // 5. Balance histórico.
+  const metricasHistoricas = useMemo(
+    () => calcularBalanceHistorico(allTransactionsData, selectedMonth),
+    [allTransactionsData, selectedMonth]
+  );
 
   const adeudoAnterior = metricasHistoricas.balanceAnterior < 0 ? Math.abs(metricasHistoricas.balanceAnterior) : 0;
   const acumuladoAnterior = metricasHistoricas.balanceAnterior > 0 ? metricasHistoricas.balanceAnterior : 0;
-  
-  // Muestra el adeudo siempre que no esté en "mostrarTodos" y exista un saldo positivo a deber
   const mostrarAdeudoAnterior = !mostrarTodos && adeudoAnterior > 0;
   const mostrarAcumuladoAnterior = !mostrarTodos && acumuladoAnterior > 0;
 
-  const TASA_INTERES_MENSUAL = 0.0223333; // 2.23333%
-
-  // Evaluamos si el mes seleccionado está en el rango activo
-  const estaEnRangoInteres = useMemo(() => {
-    if (!selectedMonth) return false;
-    // selectedMonth tiene formato "YYYY-MM"
-    return selectedMonth >= '2025-06' && selectedMonth <= '2026-03';
-  }, [selectedMonth]);
-
-  // Interés individual del mes seleccionado basado en el 'ADEUDO ANTERIOR'
+  // 6. Interés del mes (solo tab 'padre').
   const interesMesAnterior = useMemo(() => {
-    if (activeTab !== 'padre' || !estaEnRangoInteres) return 0;
+    if (activeTab !== 'padre' || !selectedMonth) return 0;
+    if (selectedMonth < INTERES_DESDE || selectedMonth > INTERES_HASTA) return 0;
     return adeudoAnterior * TASA_INTERES_MENSUAL;
-  }, [activeTab, estaEnRangoInteres, adeudoAnterior]);
+  }, [activeTab, selectedMonth, adeudoAnterior]);
 
-  // Suma de intereses acumulados hasta el mes seleccionado
+  // 7. Intereses acumulados (solo tab 'padre').
   const interesesAcumulados = useMemo(() => {
     if (activeTab !== 'padre' || !allTransactionsData.length || !selectedMonth) return 0;
-
-    // Generamos la lista de meses desde '2025-06' hasta el mes activo (máximo '2026-03')
-    const mesLimite = selectedMonth < '2026-03' ? selectedMonth : '2026-03';
-    let totalIntereses = 0;
-
-    // Iteramos mes por mes para calcular el adeudo de cada mes y su respectivo interés
-    let [anoIter, mesIter] = [2025, 6];
-
-    while (true) {
-      const mesStr = `${anoIter}-${String(mesIter).padStart(2, '0')}`;
-      if (mesStr > mesLimite) break;
-
-      // Calculamos cuál era el balance histórico antes de iniciar dicho mes
-      const primerDiaMes = `${mesStr}-01`;
-      const balanceAnteriorMes = allTransactionsData.reduce((acc, t) => {
-        const fechaTx = t.date ? t.date.split('T')[0] : '';
-        const monto = Number(t.amount) || 0;
-        return fechaTx < primerDiaMes ? acc + monto : acc;
-      }, 0);
-
-      const adeudoMes = balanceAnteriorMes < 0 ? Math.abs(balanceAnteriorMes) : 0;
-      totalIntereses += adeudoMes * TASA_INTERES_MENSUAL;
-
-      // Avanzamos al siguiente mes
-      mesIter++;
-      if (mesIter > 12) {
-        mesIter = 1;
-        anoIter++;
-      }
-    }
-
-    return totalIntereses;
+    const mesLimite = selectedMonth < INTERES_HASTA ? selectedMonth : INTERES_HASTA;
+    return calcularInteresesAcumulados(allTransactionsData, mesLimite);
   }, [activeTab, allTransactionsData, selectedMonth]);
 
-  // 6. Resumen histórico por proyectos (solo aplica para personas).
+  // 8. Resumen histórico por proyectos (solo personas).
   const resumenBuckets = useMemo(() => {
     if (isProject) return { proyectos: [], totalDeudaProyectos: 0, totalAportadoPersonal: 0, restaPorPagarGlobal: 0 };
-
-    const bucketsMap = {};
-    let totalDeudaProyectos = 0;
-    let totalAportadoPersonal = 0;
-    const hoyStr = new Date().toISOString().split('T')[0];
-    const personalBucketId = PERSONAL_BUCKET_MAP[activeTab];
-
-    allTransactionsData.forEach((t) => {
-      const bucketId = t.money_bucket;
-      if (!bucketId) return;
-
-      const esBucketPersonal =
-        bucketId === personalBucketId ||
-        (t.money_bucket_name && TAB_NAMES[activeTab] && t.money_bucket_name.toUpperCase().includes(TAB_NAMES[activeTab].toUpperCase()));
-
-      if (esBucketPersonal) {
-        totalAportadoPersonal += t.amount;
-        return;
-      }
-
-      if (!bucketsMap[bucketId]) {
-        bucketsMap[bucketId] = {
-          id: bucketId,
-          name: t.money_bucket_name,
-          deudaTotal: 0,
-          totalCuotas: 0,
-          cuotasCompletadas: 0,
-          montoTotalCobrado: 0,
-          montoCompletado: 0,
-        };
-      }
-
-      if (t.amount < 0) {
-        const montoAbs = Math.abs(t.amount);
-        bucketsMap[bucketId].deudaTotal += montoAbs;
-        bucketsMap[bucketId].totalCuotas += 1;
-        bucketsMap[bucketId].montoTotalCobrado += montoAbs;
-
-        const fechaTx = t.date.split('T')[0];
-        if (fechaTx <= hoyStr) {
-          bucketsMap[bucketId].cuotasCompletadas += 1;
-          bucketsMap[bucketId].montoCompletado += montoAbs;
-        }
-        totalDeudaProyectos += montoAbs;
-      }
-    });
-
-    const proyectos = Object.values(bucketsMap).sort((a, b) => b.deudaTotal - a.deudaTotal);
-    const restaPorPagarGlobal = totalDeudaProyectos - totalAportadoPersonal;
-
-    return { proyectos, totalDeudaProyectos, totalAportadoPersonal, restaPorPagarGlobal };
-  }, [allTransactionsData, activeTab, isProject]);
+    return calcularResumenBuckets(allTransactionsData, activeTab, personalBucketId);
+  }, [allTransactionsData, activeTab, isProject, personalBucketId]);
 
   return {
     sortedData,
