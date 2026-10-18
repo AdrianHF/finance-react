@@ -1,4 +1,21 @@
-// src/components/TransactionsTable.jsx
+/**
+ * @file TransactionsTable.jsx
+ * @component TransactionsTable
+ * @description Tabla principal de movimientos con resumen dinámico de métricas financieras y soporte para ordenamiento y dispositivos móviles.
+ *
+ * Funcionalidades Clave:
+ * - Muestra un listado detallado de transacciones con fechas, descripciones, cubetas y montos con formato monetario.
+ * - Incluye cabecera de métricas financieras con adeudos, acumulados, pagos del mes y totales a pagar.
+ * - Soporta visualización exclusiva de intereses para la pestaña de tipo 'padre'.
+ * - Permite ordenar dinámicamente la tabla haciendo clic en las columnas con indicadores visuales.
+ * - Se adapta de manera responsiva a pantallas móviles ajustando la disposición de tarjetas y el desplazamiento horizontal.
+ *
+ * @returns {JSX.Element} Elemento JSX que renderiza la tabla de transacciones y su resumen de métricas.
+ *
+ * @public:  TransactionsTable
+ * @imports: react, ../styles/styles
+ */
+
 import React from 'react';
 import {
   tableCardStyle,
@@ -150,17 +167,17 @@ export default function TransactionsTable({
           )}
 
           <div>
-            <span style={{ fontSize: '11px', color: '#11532a', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>
+            <span style={{ fontSize: '11px', color: '#756757', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>
               Pagado Este Mes
             </span>
-            <span style={{ color: '#11532a', fontSize: '15px', fontWeight: '700' }}>${fmt(metricasResumen.pagado)}</span>
+            <span style={{ color: '#756757', fontSize: '15px', fontWeight: '700' }}>${fmt(metricasResumen.pagado)}</span>
           </div>
 
           <div>
             <span
               style={{
                 fontSize: '11px',
-                color: metricasResumen.porPagar < 0 ? '#11532a' : '#991b1b',
+                color: metricasResumen.porPagar < 0 ? '#11532a' : '#914e39',
                 fontWeight: '600',
                 textTransform: 'uppercase',
                 display: 'block',
@@ -170,7 +187,7 @@ export default function TransactionsTable({
             </span>
             <span
               style={{
-                color: metricasResumen.porPagar < 0 ? '#11532a' : '#991b1b',
+                color: metricasResumen.porPagar < 0 ? '#11532a' : '#914e39',
                 fontSize: '15px',
                 fontWeight: '700',
               }}
@@ -219,10 +236,10 @@ export default function TransactionsTable({
                   <td style={tdStyle}>{t.date}</td>
                   <td style={tdStyle}>{t.description || <span style={emptyDashStyle}>sin descripción</span>}</td>
                   <td style={tdStyle}>
-                    <span style={bucketLabelStyle}>{t.money_bucket_name}</span>
+                    <span style={{ ...bucketLabelStyle, borderRadius:'10px', backgroundColor: '#c2ab94', color: '#000000' }}>{t.money_bucket_name}</span>
                   </td>
                   <td style={tdStyle}>{t.product_name}</td>
-                  <td style={{ ...tdStyle, textAlign: 'right', fontWeight: '600', color: t.amount >= 0 ? '#16a34a' : '#dc2626' }}>
+                  <td style={{ ...tdStyle, textAlign: 'right', fontWeight: '600', color: t.amount >= 0 ? '#16a34a' : '#914e39' }}>
                     {t.amount >= 0 ? '+' : ''}${t.amount.toFixed(2)}
                   </td>
                 </tr>
