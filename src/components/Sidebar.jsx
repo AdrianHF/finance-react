@@ -1,7 +1,23 @@
-// src/components/Sidebar.jsx
+/**
+ * @file Sidebar.jsx
+ * @component Sidebar
+ * @description Navegación lateral de escritorio con soporte para pestañas principales y grupos colapsables.
+ *
+ * Funcionalidades Clave:
+ * - Permite cambiar entre las distintas pestañas principales de la aplicación.
+ * - Gestiona la apertura y cierre del grupo colapsable de navegación "Pulgosas".
+ * - Gestiona la apertura y cierre del grupo colapsable de navegación "Cubetas".
+ * - Delega el control del estado activo al componente padre mediante callbacks.
+ *
+ * @returns {JSX.Element} Barra de navegación lateral fija para pantallas de escritorio.
+ *
+ * @public:  Sidebar
+ * @imports: react, prop-types, ../styles/styles
+ */
+
 import React from 'react';
 import PropTypes from 'prop-types';
-import { tabButtonStyle, tabButtonStyleBuckets } from '../styles/styles';
+import { tabButtonStyle } from '../styles/styles';
 
 /**
  * Navegación lateral para pantallas de escritorio.
@@ -175,7 +191,9 @@ export default function Sidebar({
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              backgroundColor: cubetasOpen ? '#ff7003' : '#ff9e54',
+              backgroundColor: cubetasOpen
+                ? 'rgba(255, 255, 255, 0.08)'
+                : 'transparent',
               fontWeight: '600',
               fontSize: '14px',
               border: 'none',
@@ -216,31 +234,66 @@ export default function Sidebar({
             >
               <button
                 onClick={() => onSelectTab('terrenoFelipao')}
-                style={tabButtonStyleBuckets(activeTab === 'terrenoFelipao')}
+                style={{
+                  ...tabButtonStyle(activeTab === 'terrenoFelipao'),
+                  backgroundColor:
+                    activeTab === 'terrenoFelipao'
+                      ? '#7fa8e9'
+                      : 'rgb(200, 202, 207)',
+                  color: activeTab === 'terrenoFelipao' ? '#ffffff' : '#000000',
+                }}
               >
                 TERRENO FELIPAO
               </button>
               <button
                 onClick={() => onSelectTab('terrenoFelipe2DO')}
-                style={tabButtonStyleBuckets(activeTab === 'terrenoFelipe2DO')}
+                style={{
+                  ...tabButtonStyle(activeTab === 'terrenoFelipe2DO'),
+                  backgroundColor:
+                    activeTab === 'terrenoFelipe2DO'
+                      ? '#7fa8e9'
+                      : 'rgb(200, 202, 207)',
+                  color: activeTab === 'terrenoFelipe2DO' ? '#ffffff' : '#000000',
+                }}
               >
                 TERRENO FELIPE 2DO
               </button>
               <button
                 onClick={() => onSelectTab('carro')}
-                style={tabButtonStyleBuckets(activeTab === 'carro')}
+                style={{
+                  ...tabButtonStyle(activeTab === 'carro'),
+                  backgroundColor:
+                    activeTab === 'carro'
+                      ? '#7fa8e9'
+                      : 'rgb(200, 202, 207)',
+                  color: activeTab === 'carro' ? '#ffffff' : '#000000',
+                }}
               >
                 CARRO
               </button>
               <button
                 onClick={() => onSelectTab('desbRefriReg')}
-                style={tabButtonStyleBuckets(activeTab === 'desbRefriReg')}
+                style={{
+                  ...tabButtonStyle(activeTab === 'desbRefriReg'),
+                  backgroundColor:
+                    activeTab === 'desbRefriReg'
+                      ? '#7fa8e9'
+                      : 'rgb(200, 202, 207)',
+                  color: activeTab === 'desbRefriReg' ? '#ffffff' : '#000000',
+                }}
               >
                 DESB, REFRI, REG
               </button>
               <button
                 onClick={() => onSelectTab('gastosGenerales')}
-                style={tabButtonStyleBuckets(activeTab === 'gastosGenerales')}
+                style={{
+                  ...tabButtonStyle(activeTab === 'gastosGenerales'),
+                  backgroundColor:
+                    activeTab === 'gastosGenerales'
+                      ? '#7fa8e9'
+                      : 'rgb(200, 202, 207)',
+                  color: activeTab === 'gastosGenerales' ? '#ffffff' : '#000000',
+                }}
               >
                 GASTOS GENERALES TERRENOS
               </button>
