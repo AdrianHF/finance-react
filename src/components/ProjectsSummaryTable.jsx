@@ -51,7 +51,7 @@ export default function ProjectsSummaryTable({ isMobile, resumenBuckets }) {
     <div style={{ marginTop: '40px' }}>
       <div style={excelCardStyle}>
         <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'monospace, sans-serif', minWidth: isMobile ? '760px' : 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, Oxygen, Ubuntu, Cantarell, \'Open Sans\', \'Helvetica Neue\', sans-serif', minWidth: isMobile ? '760px' : 'auto' }}>
             <thead>
               <tr style={{ backgroundColor: '#f8fafc' }}>
                 <th style={excelThStyle}>DEUDAS</th>
@@ -126,14 +126,14 @@ export default function ProjectsSummaryTable({ isMobile, resumenBuckets }) {
             <tfoot style={{ borderTop: '2px solid #cbd5e1', fontWeight: '700' }}>
               {/* Total Deudas */}
               <tr style={{ backgroundColor: '#fdf2f2' }}>
-                <td colSpan="2" style={{ ...excelTdStyle, color: '#991b1b' }}>DEUDA TOTAL</td>
-                <td style={{ ...excelTdStyle, textAlign: 'right', color: '#991b1b', fontWeight: '800' }}>${fmt(totalDeudaProyectos)}</td>
+                <td colSpan="2" style={{ ...excelTdStyle, color: '#8d402a' }}>DEUDA TOTAL</td>
+                <td style={{ ...excelTdStyle, textAlign: 'right', color: '#8d402a', fontWeight: '800' }}>${fmt(totalDeudaProyectos)}</td>
               </tr>
 
               {/* Total Ingresado / Recibido */}
               <tr style={{ backgroundColor: '#f0fdf4' }}>
-                <td colSpan="2" style={{ ...excelTdStyle, color: '#16a34a' }}>DINERO RECIBIDO</td>
-                <td style={{ ...excelTdStyle, textAlign: 'right', color: '#16a34a', fontWeight: '800' }}>${fmt(totalAportadoPersonal)}</td>
+                <td colSpan="2" style={{ ...excelTdStyle, color: '#588157' }}>DINERO RECIBIDO</td>
+                <td style={{ ...excelTdStyle, textAlign: 'right', color: '#588157', fontWeight: '800' }}>${fmt(totalAportadoPersonal)}</td>
               </tr>
 
               {/* Saldo Restante Global por Liquidar */}
@@ -145,7 +145,7 @@ export default function ProjectsSummaryTable({ isMobile, resumenBuckets }) {
                   style={{
                     ...excelTdStyle,
                     textAlign: 'right',
-                    color: restaPorPagarGlobal <= 0 ? '#16a34a' : '#b91c1c',
+                    color: restaPorPagarGlobal <= 0 ? '#588157' : '#8d402a',
                     fontSize: '14px',
                     fontWeight: '900',
                   }}

@@ -120,10 +120,10 @@ export default function TransactionsTable({
         >
           {mostrarAdeudoAnterior && (
             <div>
-              <span style={{ fontSize: '11px', color: '#991b1b', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>
+              <span style={{ fontSize: '11px', color: '#8d402a', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>
                 Adeudo Anterior
               </span>
-              <span style={{ color: '#991b1b', fontSize: '15px', fontWeight: '700' }}>${fmt(adeudoAnterior)}</span>
+              <span style={{ color: '#8d402a', fontSize: '15px', fontWeight: '700' }}>${fmt(adeudoAnterior)}</span>
             </div>
           )}
           
@@ -167,10 +167,10 @@ export default function TransactionsTable({
           )}
 
           <div>
-            <span style={{ fontSize: '11px', color: '#756757', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>
+            <span style={{ fontSize: '11px', color: '#3a5a40', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>
               Pagado Este Mes
             </span>
-            <span style={{ color: '#756757', fontSize: '15px', fontWeight: '700' }}>${fmt(metricasResumen.pagado)}</span>
+            <span style={{ color: '#3a5a40', fontSize: '15px', fontWeight: '700' }}>${fmt(metricasResumen.pagado)}</span>
           </div>
 
           <div>
@@ -236,10 +236,10 @@ export default function TransactionsTable({
                   <td style={tdStyle}>{t.date}</td>
                   <td style={tdStyle}>{t.description || <span style={emptyDashStyle}>sin descripción</span>}</td>
                   <td style={tdStyle}>
-                    <span style={{ ...bucketLabelStyle, borderRadius:'10px', backgroundColor: '#c2ab94', color: '#000000' }}>{t.money_bucket_name}</span>
+                    <span style={{ ...bucketLabelStyle, fontWeight: '500', borderRadius: '8px', backgroundColor: '#f8fafc', color: '#000000' }}>{t.money_bucket_name}</span>
                   </td>
                   <td style={tdStyle}>{t.product_name}</td>
-                  <td style={{ ...tdStyle, textAlign: 'right', fontWeight: '600', color: t.amount >= 0 ? '#16a34a' : '#914e39' }}>
+                  <td style={{ ...tdStyle, textAlign: 'right', fontWeight: '600', color: t.amount >= 0 ? '#3a5a40' : '#914e39' }}>
                     {t.amount >= 0 ? '+' : ''}${t.amount.toFixed(2)}
                   </td>
                 </tr>

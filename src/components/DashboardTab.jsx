@@ -80,20 +80,20 @@ export default function DashboardTab({
         >
           {/* Métrica: Pagado */}
           <div>
-            <span style={{ fontSize: '11px', color: '#11532a', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>
+            <span style={{ fontSize: '11px', color: '#588157', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>
               Pagado
             </span>
-            <span style={{ color: '#11532a', fontSize: '15px', fontWeight: '700' }}>
+            <span style={{ color: '#588157', fontSize: '15px', fontWeight: '700' }}>
               ${metricasFinancieras.pagado.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
 
           {/* Métrica: Por Pagar */}
           <div>
-            <span style={{ fontSize: '11px', color: '#991b1b', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>
+            <span style={{ fontSize: '11px', color: '#8d402a', fontWeight: '600', textTransform: 'uppercase', display: 'block' }}>
               Por Pagar
             </span>
-            <span style={{ color: '#991b1b', fontSize: '15px', fontWeight: '700' }}>
+            <span style={{ color: '#8d402a', fontSize: '15px', fontWeight: '700' }}>
               ${metricasFinancieras.porPagar.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
@@ -158,7 +158,7 @@ export default function DashboardTab({
                 FALTANTE
               </span>
               <div style={{ height: '31px', display: 'flex', alignItems: 'center' }}>
-                <span style={{ color: faltanteEsCero ? '#11532a' : '#b45309', fontSize: '14px', fontWeight: '800' }}>
+                <span style={{ color: faltanteEsCero ? '#588157' : '#8d402a', fontSize: '14px', fontWeight: '800' }}>
                   ${faltante.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>

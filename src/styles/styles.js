@@ -45,9 +45,9 @@ export const getStatusBadgeStyle = (status) => {
   };
   switch (status) {
     case 'PAGADO':
-      return { ...baseBadgeStyle, backgroundColor: '#b5e2c5', color: '#33704a' };
+      return { ...baseBadgeStyle, backgroundColor: '#c9e7d3', color: '#588157' };
     case 'POR PAGAR':
-      return { ...baseBadgeStyle, backgroundColor: '#e9e4ab', color: '#946128' };
+      return { ...baseBadgeStyle, backgroundColor: '#e9e4ab', color: '#8d402a' };
     case 'NO DISPONIBLE AUN':
       return { ...baseBadgeStyle, backgroundColor: '#f1f5f9', color: '#475569' };
     case 'PRODUCTO INACTIVO':
@@ -55,7 +55,7 @@ export const getStatusBadgeStyle = (status) => {
     case 'NO APLICA':
       return { ...baseBadgeStyle, backgroundColor: '#cbd5e1', color: '#475569', fontStyle: 'italic' };
     default:
-      return { ...baseBadgeStyle, backgroundColor: '#fef2f2', color: '#991b1b' };
+      return { ...baseBadgeStyle, backgroundColor: '#f8f0f0', color: '#8d402a' };
   }
 };
 
@@ -356,7 +356,7 @@ export const progressBarTrackStyle = {
 export const progressBarFillStyle = (porcentaje) => ({
   height: '100%',
   width: `${Math.min(100, Math.max(0, porcentaje))}%`,
-  backgroundColor: porcentaje >= 100 ? '#16a34a' : '#3b82f6',
+  backgroundColor: porcentaje >= 100 ? '#588157' : '#415a77',
   borderRadius: '4px',
   transition: 'width 0.3s ease',
 });

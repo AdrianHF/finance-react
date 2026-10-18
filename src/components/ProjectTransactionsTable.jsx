@@ -114,7 +114,7 @@ export default function ProjectTransactionsTable({
               </span>
               <span
                 style={{
-                  color: adeudoAnterior > 0 ? '#dc2626' : '#16a34a',
+                  color: adeudoAnterior > 0 ? '#8d402a' : '#588157',
                   fontSize: '16px',
                   fontWeight: '800',
                 }}
@@ -163,7 +163,7 @@ export default function ProjectTransactionsTable({
             </span>
             <span
               style={{
-                color: '#16a34a',
+                color: '#588157',
                 fontSize: '16px',
                 fontWeight: '800',
               }}
@@ -187,7 +187,7 @@ export default function ProjectTransactionsTable({
             </span>
             <span
               style={{
-                color: totalRestanteConsolidado > 0 ? '#dc2626' : '#16a34a',
+                color: totalRestanteConsolidado > 0 ? '#8d402a' : '#588157',
                 fontSize: '16px',
                 fontWeight: '800',
               }}
@@ -273,7 +273,7 @@ export default function ProjectTransactionsTable({
                       ...tdStyle,
                       textAlign: 'right',
                       fontWeight: '600',
-                      color: t.amount >= 0 ? '#16a34a' : '#dc2626',
+                      color: t.amount >= 0 ? '#588157' : '#8d402a',
                     }}
                   >
                     {t.amount >= 0 ? '+' : ''}${fmt(t.amount)}

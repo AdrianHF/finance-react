@@ -145,7 +145,7 @@ export default function Sidebar({
                   ...tabButtonStyle(activeTab === 'transacciones'),
                   backgroundColor:
                     activeTab === 'transacciones'
-                      ? '#7fa8e9'
+                      ? '#22333B'
                       : 'rgb(200, 202, 207)',
                   color: activeTab === 'transacciones' ? '#ffffff' : '#000000',
                 }}
@@ -157,7 +157,7 @@ export default function Sidebar({
                 style={{
                   ...tabButtonStyle(activeTab === 'ana'),
                   backgroundColor:
-                    activeTab === 'ana' ? '#7fa8e9' : 'rgb(200, 202, 207)',
+                    activeTab === 'ana' ? '#22333B' : 'rgb(200, 202, 207)',
                   color: activeTab === 'ana' ? '#ffffff' : '#000000',
                 }}
               >
@@ -238,7 +238,7 @@ export default function Sidebar({
                   ...tabButtonStyle(activeTab === 'terrenoFelipao'),
                   backgroundColor:
                     activeTab === 'terrenoFelipao'
-                      ? '#7fa8e9'
+                      ? '#22333B'
                       : 'rgb(200, 202, 207)',
                   color: activeTab === 'terrenoFelipao' ? '#ffffff' : '#000000',
                 }}
@@ -251,7 +251,7 @@ export default function Sidebar({
                   ...tabButtonStyle(activeTab === 'terrenoFelipe2DO'),
                   backgroundColor:
                     activeTab === 'terrenoFelipe2DO'
-                      ? '#7fa8e9'
+                      ? '#22333B'
                       : 'rgb(200, 202, 207)',
                   color: activeTab === 'terrenoFelipe2DO' ? '#ffffff' : '#000000',
                 }}
@@ -264,7 +264,7 @@ export default function Sidebar({
                   ...tabButtonStyle(activeTab === 'carro'),
                   backgroundColor:
                     activeTab === 'carro'
-                      ? '#7fa8e9'
+                      ? '#22333B'
                       : 'rgb(200, 202, 207)',
                   color: activeTab === 'carro' ? '#ffffff' : '#000000',
                 }}
@@ -277,7 +277,7 @@ export default function Sidebar({
                   ...tabButtonStyle(activeTab === 'desbRefriReg'),
                   backgroundColor:
                     activeTab === 'desbRefriReg'
-                      ? '#7fa8e9'
+                      ? '#22333B'
                       : 'rgb(200, 202, 207)',
                   color: activeTab === 'desbRefriReg' ? '#ffffff' : '#000000',
                 }}
@@ -290,7 +290,7 @@ export default function Sidebar({
                   ...tabButtonStyle(activeTab === 'gastosGenerales'),
                   backgroundColor:
                     activeTab === 'gastosGenerales'
-                      ? '#7fa8e9'
+                      ? '#22333B'
                       : 'rgb(200, 202, 207)',
                   color: activeTab === 'gastosGenerales' ? '#ffffff' : '#000000',
                 }}
