@@ -1,4 +1,20 @@
-// src/components/AppHeader.jsx
+/**
+ * @file AppHeader.jsx
+ * @component AppHeader
+ * @description Componente de encabezado adaptable que muestra el título de la vista y controles de filtrado temporal.
+ *
+ * Funcionalidades Clave:
+ * - Renderiza dinámicamente el título según la pestaña activa
+ * - Incluye un selector desplegable de meses
+ * - Proporciona controles de filtrado rápido para transacciones (Todos / Mes actual)
+ * - Adapta su diseño responsivo para dispositivos móviles
+ *
+ * @returns {JSX.Element} Elemento JSX que contiene la cabecera superior de la aplicación.
+ *
+ * @public:  AppHeader
+ * @imports: react, prop-types, ../config/constants, ../utils/dateUtils, ../styles/styles
+ */
+
 import React from 'react';
 import PropTypes from 'prop-types';
 import { TAB_NAMES } from '../config/constants';
@@ -99,3 +115,19 @@ export default function AppHeader({
     </header>
   );
 }
+
+AppHeader.propTypes = {
+  activeTab: PropTypes.string.isRequired,
+  isMobile: PropTypes.bool.isRequired,
+  selectedMonth: PropTypes.string.isRequired,
+  onSelectedMonthChange: PropTypes.func.isRequired,
+  monthOptions: PropTypes.arrayOf(
+    PropTypes.shape({
+      value: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  isTransactionTab: PropTypes.bool.isRequired,
+  mostrarTodos: PropTypes.bool.isRequired,
+  onMostrarTodosChange: PropTypes.func.isRequired,
+};

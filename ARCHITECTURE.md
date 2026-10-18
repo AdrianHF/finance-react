@@ -43,16 +43,45 @@ FINANCE-REACT
 
 ## Módulos
 
-### `src/App.jsx` (CONTEO DE LINEAS DE CODIGO: 198)
+### `src/App.jsx` (CONTEO DE LINEAS DE CODIGO: 213)
 
 ```jsx
-// src/App.jsx
+/**
+ * @file App.jsx
+ * @component App
+ * @description Componente raíz que gestiona el estado global de navegación, filtros y sincronización de hooks para la aplicación Dineros.
+ *
+ * Funcionalidades Clave:
+ * - Orquestación de pestañas activas y diseño adaptativo (Mobile/Desktop)
+ * - Gestión de filtros temporales por mes y visualización histórica
+ * - Integración de datos para el dashboard, transacciones y proyectos
+ * - Configuración dinámica de ordenamiento tipo Excel para tablas
+ *
+ * @returns {JSX.Element} Estructura completa de la aplicación con navegación y vistas activas
+ *
+ * @imports: react, ./config/constants, ./utils/dateUtils, ./styles/styles, ./hooks/useIsMobile, ./hooks/useSortConfig, ./hooks/useDashboardData, ./hooks/useTransactionsData, ./components/Sidebar, ./components/MobileNav, ./components/AppHeader, ./components/DashboardTab, ./components/TransactionsTable, ./components/ProjectsSummaryTable, ./components/ProjectTransactionsTable, ./index.css
+ */
 ```
 
-### `src/components/AppHeader.jsx` (CONTEO DE LINEAS DE CODIGO: 101)
+### `src/components/AppHeader.jsx` (CONTEO DE LINEAS DE CODIGO: 133)
 
 ```jsx
-// src/components/AppHeader.jsx
+/**
+ * @file AppHeader.jsx
+ * @component AppHeader
+ * @description Componente de encabezado adaptable que muestra el título de la vista y controles de filtrado temporal.
+ *
+ * Funcionalidades Clave:
+ * - Renderiza dinámicamente el título según la pestaña activa
+ * - Incluye un selector desplegable de meses
+ * - Proporciona controles de filtrado rápido para transacciones (Todos / Mes actual)
+ * - Adapta su diseño responsivo para dispositivos móviles
+ *
+ * @returns {JSX.Element} Elemento JSX que contiene la cabecera superior de la aplicación.
+ *
+ * @public:  AppHeader
+ * @imports: react, prop-types, ../config/constants, ../utils/dateUtils, ../styles/styles
+ */
 ```
 
 ### `src/components/DashboardTab.jsx` (CONTEO DE LINEAS DE CODIGO: 230)
@@ -142,10 +171,24 @@ FINANCE-REACT
 /* src/index.css */
 ```
 
-### `src/styles/styles.js` (CONTEO DE LINEAS DE CODIGO: 367)
+### `src/styles/styles.js` (CONTEO DE LINEAS DE CODIGO: 382)
 
 ```javascript
-// src/styles/styles.js
+/**
+ * @file styles.js
+ * @component StylesModule
+ * @description Módulo de estilos centralizados en CSS-in-JS que proporciona objetos y funciones generadoras de estilos para toda la aplicación.
+ *
+ * Funcionalidades Clave:
+ * - Proveer estilos estáticos y reutilizables para tablas, tarjetas, inputs y contenedores.
+ * - Generar estilos dinámicos para badges de estado, botones de navegación y barras de progreso.
+ * - Incluir inyecciones de CSS global para normalización de elementos de formulario.
+ * - Asegurar la consistencia visual y de diseño en componentes de interfaz.
+ *
+ * @returns {Object} Colección de objetos de estilo y funciones generadoras de CSS-in-JS.
+ *
+ * @public:  getStatusBadgeStyle, tabButtonStyle, tabButtonStyleBuckets, mobileTabButtonStyle, textButtonStyle, excelDropdownStyle, excelCardStyle, excelThStyle, excelTdStyle, excelTrStyle, bucketLabelStyle, metricsHeaderContainer, sectionTitleStyle, placeholderCardStyle, tableCardStyle, thStyle, tdStyle, trHoverStyle, emptyDashStyle, infoIconStyle, progressBarTrackStyle, progressBarFillStyle, numberInputResetCSS
+ */
 ```
 
 ### `src/supabaseClient.js` (CONTEO DE LINEAS DE CODIGO: 8)

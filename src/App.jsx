@@ -1,4 +1,19 @@
-// src/App.jsx
+/**
+ * @file App.jsx
+ * @component App
+ * @description Componente raíz que gestiona el estado global de navegación, filtros y sincronización de hooks para la aplicación Dineros.
+ *
+ * Funcionalidades Clave:
+ * - Orquestación de pestañas activas y diseño adaptativo (Mobile/Desktop)
+ * - Gestión de filtros temporales por mes y visualización histórica
+ * - Integración de datos para el dashboard, transacciones y proyectos
+ * - Configuración dinámica de ordenamiento tipo Excel para tablas
+ *
+ * @returns {JSX.Element} Estructura completa de la aplicación con navegación y vistas activas
+ *
+ * @imports: react, ./config/constants, ./utils/dateUtils, ./styles/styles, ./hooks/useIsMobile, ./hooks/useSortConfig, ./hooks/useDashboardData, ./hooks/useTransactionsData, ./components/Sidebar, ./components/MobileNav, ./components/AppHeader, ./components/DashboardTab, ./components/TransactionsTable, ./components/ProjectsSummaryTable, ./components/ProjectTransactionsTable, ./index.css
+ */
+
 /**
  * @fileoverview Componente raíz de la aplicación "Dineros".
  * Gestiona el estado global de navegación, filtros de fecha/modo de visualización,
@@ -104,7 +119,7 @@ function App() {
         display: 'flex',
         flexDirection: isMobile ? 'column' : 'row',
         minHeight: '100vh',
-        backgroundColor: '#f4f6f8',
+        backgroundColor: '#ebe1d7',
         paddingBottom: isMobile ? '70px' : '0px',
       }}
     >

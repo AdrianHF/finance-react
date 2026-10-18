@@ -1,4 +1,19 @@
-// src/styles/styles.js
+/**
+ * @file styles.js
+ * @component StylesModule
+ * @description Módulo de estilos centralizados en CSS-in-JS que proporciona objetos y funciones generadoras de estilos para toda la aplicación.
+ *
+ * Funcionalidades Clave:
+ * - Proveer estilos estáticos y reutilizables para tablas, tarjetas, inputs y contenedores.
+ * - Generar estilos dinámicos para badges de estado, botones de navegación y barras de progreso.
+ * - Incluir inyecciones de CSS global para normalización de elementos de formulario.
+ * - Asegurar la consistencia visual y de diseño en componentes de interfaz.
+ *
+ * @returns {Object} Colección de objetos de estilo y funciones generadoras de CSS-in-JS.
+ *
+ * @public:  getStatusBadgeStyle, tabButtonStyle, tabButtonStyleBuckets, mobileTabButtonStyle, textButtonStyle, excelDropdownStyle, excelCardStyle, excelThStyle, excelTdStyle, excelTrStyle, bucketLabelStyle, metricsHeaderContainer, sectionTitleStyle, placeholderCardStyle, tableCardStyle, thStyle, tdStyle, trHoverStyle, emptyDashStyle, infoIconStyle, progressBarTrackStyle, progressBarFillStyle, numberInputResetCSS
+ */
+
 /**
  * @fileoverview Modulo de estilos centralizados de la aplicacion (CSS-in-JS).
  * Contiene objetos de estilos en linea, funciones generadoras de estilo dinámico 
@@ -117,9 +132,9 @@ export const mobileTabButtonStyle = (isActive) => ({
  * @returns {CSSProperties} Estilos para botones de alternancia.
  */
 export const textButtonStyle = (isHighlighted) => ({
-  backgroundColor: isHighlighted ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
-  color: isHighlighted ? '#1e3a8a' : '#64748b',
-  border: isHighlighted ? '1px solid #3b82f6' : '1px solid transparent',
+  backgroundColor: isHighlighted ? '#2e3a48' : 'transparent',
+  color: isHighlighted ? '#ffffff' : '#64748b',
+  border: isHighlighted ? '1px solid #2e3a48' : '1px solid transparent',
   borderRadius: '8px',
   padding: '6px 14px',
   fontSize: '12px',
