@@ -108,21 +108,20 @@ FINANCE-REACT
 // src/components/ProjectsSummaryTable.jsx
 ```
 
-### `src/components/Sidebar.jsx` (CONTEO DE LINEAS DE CODIGO: 327)
+### `src/components/Sidebar.jsx` (CONTEO DE LINEAS DE CODIGO: 336)
 
 ```jsx
 /**
  * @file Sidebar.jsx
  * @component Sidebar
- * @description Navegación lateral de escritorio con soporte para pestañas principales y grupos colapsables.
+ * @description Navegación lateral para pantallas de escritorio con pestañas y grupos colapsables.
  *
  * Funcionalidades Clave:
  * - Permite cambiar entre las distintas pestañas principales de la aplicación.
- * - Gestiona la apertura y cierre del grupo colapsable de navegación "Pulgosas".
- * - Gestiona la apertura y cierre del grupo colapsable de navegación "Cubetas".
- * - Delega el control del estado activo al componente padre mediante callbacks.
+ * - Gestiona grupos de navegación colapsables para "Pulgosas" y "Cubetas".
+ * - Delega el manejo del estado activo al componente padre mediante callbacks.
  *
- * @returns {JSX.Element} Barra de navegación lateral fija para pantallas de escritorio.
+ * @returns {JSX.Element} Barra de navegación lateral fija para escritorio.
  *
  * @public:  Sidebar
  * @imports: react, prop-types, ../styles/styles
@@ -181,7 +180,7 @@ FINANCE-REACT
 // src/hooks/useTransactionsData.js
 ```
 
-### `src/index.css` (CONTEO DE LINEAS DE CODIGO: 12)
+### `src/index.css` (CONTEO DE LINEAS DE CODIGO: 15)
 
 ```css
 /* src/index.css */

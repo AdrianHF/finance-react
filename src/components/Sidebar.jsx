@@ -1,15 +1,14 @@
 /**
  * @file Sidebar.jsx
  * @component Sidebar
- * @description Navegación lateral de escritorio con soporte para pestañas principales y grupos colapsables.
+ * @description Navegación lateral para pantallas de escritorio con pestañas y grupos colapsables.
  *
  * Funcionalidades Clave:
  * - Permite cambiar entre las distintas pestañas principales de la aplicación.
- * - Gestiona la apertura y cierre del grupo colapsable de navegación "Pulgosas".
- * - Gestiona la apertura y cierre del grupo colapsable de navegación "Cubetas".
- * - Delega el control del estado activo al componente padre mediante callbacks.
+ * - Gestiona grupos de navegación colapsables para "Pulgosas" y "Cubetas".
+ * - Delega el manejo del estado activo al componente padre mediante callbacks.
  *
- * @returns {JSX.Element} Barra de navegación lateral fija para pantallas de escritorio.
+ * @returns {JSX.Element} Barra de navegación lateral fija para escritorio.
  *
  * @public:  Sidebar
  * @imports: react, prop-types, ../styles/styles
@@ -83,7 +82,10 @@ export default function Sidebar({
         {/* Pestaña Principal: Dashboard / Adrián */}
         <button
           onClick={() => onSelectTab('dashboard')}
-          style={tabButtonStyle(activeTab === 'dashboard')}
+          style={{
+            ...tabButtonStyle(activeTab === 'dashboard'),
+            fontSize: '13px',
+          }}
         >
           ADRIAN
         </button>
@@ -102,10 +104,10 @@ export default function Sidebar({
                 ? 'rgba(255, 255, 255, 0.08)'
                 : 'transparent',
               fontWeight: '600',
-              fontSize: '14px',
+              fontSize: '13px',
               border: 'none',
               color: '#ffffff',
-              padding: '12px 24px',
+              padding: '13px 24px',
               margin: 0,
             }}
           >
@@ -143,6 +145,7 @@ export default function Sidebar({
                 onClick={() => onSelectTab('transacciones')}
                 style={{
                   ...tabButtonStyle(activeTab === 'transacciones'),
+                  fontSize: '13px',
                   backgroundColor:
                     activeTab === 'transacciones'
                       ? '#22333B'
@@ -156,6 +159,7 @@ export default function Sidebar({
                 onClick={() => onSelectTab('ana')}
                 style={{
                   ...tabButtonStyle(activeTab === 'ana'),
+                  fontSize: '13px',
                   backgroundColor:
                     activeTab === 'ana' ? '#22333B' : 'rgb(200, 202, 207)',
                   color: activeTab === 'ana' ? '#ffffff' : '#000000',
@@ -170,13 +174,19 @@ export default function Sidebar({
         {/* Pestañas Individuales */}
         <button
           onClick={() => onSelectTab('padre')}
-          style={tabButtonStyle(activeTab === 'padre')}
+          style={{
+            ...tabButtonStyle(activeTab === 'padre'),
+            fontSize: '13px',
+          }}
         >
           PADRE
         </button>
         <button
           onClick={() => onSelectTab('jefesita')}
-          style={tabButtonStyle(activeTab === 'jefesita')}
+          style={{
+            ...tabButtonStyle(activeTab === 'jefesita'),
+            fontSize: '13px',
+          }}
         >
           JEFESITA
         </button>
@@ -195,10 +205,10 @@ export default function Sidebar({
                 ? 'rgba(255, 255, 255, 0.08)'
                 : 'transparent',
               fontWeight: '600',
-              fontSize: '14px',
+              fontSize: '13px',
               border: 'none',
               color: '#ffffff',
-              padding: '12px 24px',
+              padding: '13px 24px',
               margin: 0,
             }}
           >
@@ -236,6 +246,7 @@ export default function Sidebar({
                 onClick={() => onSelectTab('terrenoFelipao')}
                 style={{
                   ...tabButtonStyle(activeTab === 'terrenoFelipao'),
+                  fontSize: '13px',
                   backgroundColor:
                     activeTab === 'terrenoFelipao'
                       ? '#22333B'
@@ -249,6 +260,7 @@ export default function Sidebar({
                 onClick={() => onSelectTab('terrenoFelipe2DO')}
                 style={{
                   ...tabButtonStyle(activeTab === 'terrenoFelipe2DO'),
+                  fontSize: '13px',
                   backgroundColor:
                     activeTab === 'terrenoFelipe2DO'
                       ? '#22333B'
@@ -262,6 +274,7 @@ export default function Sidebar({
                 onClick={() => onSelectTab('carro')}
                 style={{
                   ...tabButtonStyle(activeTab === 'carro'),
+                  fontSize: '13px',
                   backgroundColor:
                     activeTab === 'carro'
                       ? '#22333B'
@@ -275,6 +288,7 @@ export default function Sidebar({
                 onClick={() => onSelectTab('desbRefriReg')}
                 style={{
                   ...tabButtonStyle(activeTab === 'desbRefriReg'),
+                  fontSize: '13px',
                   backgroundColor:
                     activeTab === 'desbRefriReg'
                       ? '#22333B'
@@ -288,6 +302,7 @@ export default function Sidebar({
                 onClick={() => onSelectTab('gastosGenerales')}
                 style={{
                   ...tabButtonStyle(activeTab === 'gastosGenerales'),
+                  fontSize: '13px',
                   backgroundColor:
                     activeTab === 'gastosGenerales'
                       ? '#22333B'
@@ -297,12 +312,6 @@ export default function Sidebar({
               >
                 GASTOS GENERALES TERRENOS
               </button>
-
-
-
-
-
-
             </div>
           )}
         </div>

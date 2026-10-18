@@ -68,7 +68,7 @@ export const getStatusBadgeStyle = (status) => {
 export const tabButtonStyle = (isActive) => ({
   width: '100%',
   textAlign: 'left',
-  padding: '12px 24px',
+  padding: '13px 24px',
   border: 'none',
   borderRadius: '0',
   fontSize: '15px',
@@ -90,7 +90,7 @@ export const tabButtonStyle = (isActive) => ({
 export const tabButtonStyleBuckets = (isActive) => ({
   width: '100%',
   textAlign: 'left',
-  padding: '12px 24px',
+  padding: '13px 24px',
   border: 'none',
   borderRadius: '0',
   fontSize: '15px',
@@ -137,7 +137,7 @@ export const textButtonStyle = (isHighlighted) => ({
   border: isHighlighted ? '1px solid #2e3a48' : '1px solid transparent',
   borderRadius: '8px',
   padding: '6px 14px',
-  fontSize: '12px',
+  fontSize: '13px',
   fontWeight: '600',
   cursor: 'pointer',
   transition: 'all 0.2s',
@@ -149,7 +149,7 @@ export const textButtonStyle = (isHighlighted) => ({
  * @type {CSSProperties}
  */
 export const excelDropdownStyle = {
-  padding: '6px 12px',
+  padding: '6px 13px',
   fontSize: '13px',
   fontWeight: '600',
   color: '#475569',
@@ -253,7 +253,7 @@ export const sectionTitleStyle = {
 export const placeholderCardStyle = {
   backgroundColor: '#ffffff',
   border: '1px dashed #cbd5e1',
-  borderRadius: '12px',
+  borderRadius: '13px',
   padding: '40px 20px',
   textAlign: 'center',
   color: '#64748b',
@@ -265,7 +265,7 @@ export const placeholderCardStyle = {
  */
 export const tableCardStyle = {
   backgroundColor: '#ffffff',
-  borderRadius: '12px',
+  borderRadius: '13px',
   border: '1px solid #e2e8f0',
   boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
 };
@@ -275,7 +275,7 @@ export const tableCardStyle = {
  * @type {CSSProperties}
  */
 export const thStyle = {
-  padding: '12px 14px',
+  padding: '13px 14px',
   fontSize: '11px',
   fontWeight: '600',
   color: '#64748b',
@@ -291,7 +291,7 @@ export const thStyle = {
  * @type {CSSProperties}
  */
 export const tdStyle = {
-  padding: '12px 14px',
+  padding: '13px 14px',
   fontSize: '13px',
   color: '#334155',
   borderBottom: '1px solid #f1f5f9',
