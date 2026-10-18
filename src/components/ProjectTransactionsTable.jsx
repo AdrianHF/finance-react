@@ -1,4 +1,21 @@
-// src/components/ProjectTransactionsTable.jsx
+/**
+ * @file ProjectTransactionsTable.jsx
+ * @component ProjectTransactionsTable
+ * @description Muestra el historial detallado de transacciones de un proyecto con filtros, ordenamiento y métricas financieras resumidas.
+ *
+ * Funcionalidades Clave:
+ * - Renderiza una tabla responsiva con scroll horizontal adaptable para dispositivos móviles.
+ * - Calcula y muestra métricas consolidadas de costos, ingresos programados y balance total.
+ * - Permite filtrar los movimientos dinámicamente por tipo (todos, costos o ingresos).
+ * - Soporta ordenamiento interactivo de columnas mediante callbacks externos.
+ * - Formatea importes monetarios con separadores de miles y dos decimales, aplicando colores según el signo.
+ *
+ * @returns {JSX.Element} Vista de tabla con el listado de movimientos y métricas consolidadas.
+ *
+ * @public:  ProjectTransactionsTable
+ * @imports: react, prop-types, ../styles/styles
+ */
+
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -48,6 +65,8 @@ export default function ProjectTransactionsTable({
   requestSort,
   getSortIcon,
 }) {
+  const [filtroMovimiento, setFiltroMovimiento] = React.useState('todos');
+
   /**
    * Helper para formatear valores a moneda (US Dollars) con 2 decimales.
    *
@@ -60,17 +79,24 @@ export default function ProjectTransactionsTable({
       maximumFractionDigits: 2,
     });
 
-  // 1. Pagado este mes: Sumatoria exclusiva de abonos positivos (> 0)
-  const pagadoEsteMes = sortedData.reduce((acc, t) => {
+  const sumaCostos = sortedData.reduce((acc, t) => {
+    const val = Number(t.amount) || 0;
+    return val < 0 ? acc + val : acc;
+  }, 0);
+
+  const sumaIngresos = sortedData.reduce((acc, t) => {
     const val = Number(t.amount) || 0;
     return val > 0 ? acc + val : acc;
   }, 0);
 
-  // 2. Restante por pagar del mes actual (limita a 0 como mínimo)
-  const restanteMesActual = Math.max(0, totalMensual - pagadoEsteMes);
+  const sumaTotal = sumaCostos + sumaIngresos;
 
-  // 3. Deuda Total acumulada (Consolida el adeudo anterior + el restante del mes)
-  const totalRestanteConsolidado = adeudoAnterior + restanteMesActual;
+  const filteredSortedData = sortedData.filter((t) => {
+    const val = Number(t.amount) || 0;
+    if (filtroMovimiento === 'costos') return val < 0;
+    if (filtroMovimiento === 'ingresos') return val > 0;
+    return true;
+  });
 
   return (
     <div style={{ ...tableCardStyle, padding: isMobile ? '16px' : '24px' }}>
@@ -85,9 +111,61 @@ export default function ProjectTransactionsTable({
         }}
       >
         {/* Título dinámico según el filtro global */}
-        <span style={sectionTitleStyle}>
-          {mostrarTodos ? 'TODOS LOS MOVIMIENTOS' : 'MOVIMIENTOS DEL MES'}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <span style={sectionTitleStyle}>
+            {mostrarTodos ? 'TODOS LOS MOVIMIENTOS' : 'MOVIMIENTOS DEL MES'}
+          </span>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <button
+              type="button"
+              onClick={() => setFiltroMovimiento('todos')}
+              style={{
+                backgroundColor: filtroMovimiento === 'todos' ? '#2e3a48' : '#e2e8f0',
+                color: filtroMovimiento === 'todos' ? '#ffffff' : '#475569',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '4px 10px',
+                fontSize: '11px',
+                fontWeight: '600',
+                cursor: 'pointer',
+              }}
+            >
+              Todos
+            </button>
+            <button
+              type="button"
+              onClick={() => setFiltroMovimiento('costos')}
+              style={{
+                backgroundColor: filtroMovimiento === 'costos' ? '#8d402a' : '#e2e8f0',
+                color: filtroMovimiento === 'costos' ? '#ffffff' : '#475569',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '4px 10px',
+                fontSize: '11px',
+                fontWeight: '600',
+                cursor: 'pointer',
+              }}
+            >
+              Costos
+            </button>
+            <button
+              type="button"
+              onClick={() => setFiltroMovimiento('ingresos')}
+              style={{
+                backgroundColor: filtroMovimiento === 'ingresos' ? '#588157' : '#e2e8f0',
+                color: filtroMovimiento === 'ingresos' ? '#ffffff' : '#475569',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '4px 10px',
+                fontSize: '11px',
+                fontWeight: '600',
+                cursor: 'pointer',
+              }}
+            >
+              Ingresos
+            </button>
+          </div>
+        </div>
 
         {/* Bloque de Métricas Resumen */}
         <div
@@ -98,33 +176,7 @@ export default function ProjectTransactionsTable({
             alignItems: 'center',
           }}
         >
-          {/* Métrica 1: Adeudo Arrastrado (Solo visible en filtro mensual) */}
-          {!mostrarTodos && (
-            <div>
-              <span
-                style={{
-                  fontSize: '11px',
-                  color: '#64748b',
-                  fontWeight: '600',
-                  textTransform: 'uppercase',
-                  display: 'block',
-                }}
-              >
-                Adeudo Anterior
-              </span>
-              <span
-                style={{
-                  color: adeudoAnterior > 0 ? '#8d402a' : '#588157',
-                  fontSize: '16px',
-                  fontWeight: '800',
-                }}
-              >
-                ${fmt(adeudoAnterior)}
-              </span>
-            </div>
-          )}
-
-          {/* Métrica 2: Total a pagar programado para el mes */}
+          {/* Métrica 1: Costos (Suma de negativos) */}
           <div>
             <span
               style={{
@@ -135,20 +187,20 @@ export default function ProjectTransactionsTable({
                 display: 'block',
               }}
             >
-              Total a pagar este mes
+              Costos
             </span>
             <span
               style={{
-                color: '#0f172a',
+                color: '#8d402a',
                 fontSize: '16px',
                 fontWeight: '800',
               }}
             >
-              ${fmt(totalMensual)}
+              ${fmt(sumaCostos)}
             </span>
           </div>
 
-          {/* Métrica 3: Suma acumulada de abonados en el mes */}
+          {/* Métrica 2: Ingresos Programados (Suma de positivos) */}
           <div>
             <span
               style={{
@@ -159,7 +211,7 @@ export default function ProjectTransactionsTable({
                 display: 'block',
               }}
             >
-              Pagado este mes
+              Ingresos Programados
             </span>
             <span
               style={{
@@ -168,11 +220,11 @@ export default function ProjectTransactionsTable({
                 fontWeight: '800',
               }}
             >
-              ${fmt(pagadoEsteMes)}
+              ${fmt(sumaIngresos)}
             </span>
           </div>
 
-          {/* Métrica 4: Deuda Total Pendiente (Adeudo anterior + Restante) */}
+          {/* Métrica 3: Total (Suma de ambos) */}
           <div>
             <span
               style={{
@@ -183,16 +235,16 @@ export default function ProjectTransactionsTable({
                 display: 'block',
               }}
             >
-              Deuda Total Pendiente
+              Total
             </span>
             <span
               style={{
-                color: totalRestanteConsolidado > 0 ? '#8d402a' : '#588157',
+                color: sumaTotal >= 0 ? '#588157' : '#8d402a',
                 fontSize: '16px',
                 fontWeight: '800',
               }}
             >
-              ${fmt(totalRestanteConsolidado)}
+              {sumaTotal >= 0 ? '' : '-'}${fmt(Math.abs(sumaTotal))}
             </span>
           </div>
         </div>
@@ -230,7 +282,7 @@ export default function ProjectTransactionsTable({
             </tr>
           </thead>
           <tbody>
-            {sortedData.length === 0 ? (
+            {filteredSortedData.length === 0 ? (
               /* Estado sin registros */
               <tr>
                 <td
@@ -247,7 +299,7 @@ export default function ProjectTransactionsTable({
               </tr>
             ) : (
               /* Mapeo de transacciones */
-              sortedData.map((t) => (
+              filteredSortedData.map((t) => (
                 <tr key={t.transaction_id} style={trHoverStyle}>
                   {/* Fecha */}
                   <td style={tdStyle}>{t.date}</td>
