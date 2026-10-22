@@ -43,39 +43,39 @@ FINANCE-REACT
 
 ## Módulos
 
-### `src/App.jsx` (CONTEO DE LINEAS DE CODIGO: 213)
+### `src/App.jsx` (CONTEO DE LINEAS DE CODIGO: 215)
 
 ```jsx
 /**
  * @file App.jsx
  * @component App
- * @description Componente raíz que gestiona el estado global de navegación, filtros y sincronización de hooks para la aplicación Dineros.
+ * @description Componente raíz que orquesta la navegación, filtros globales y vistas principales de la aplicación Dineros.
  *
  * Funcionalidades Clave:
- * - Orquestación de pestañas activas y diseño adaptativo (Mobile/Desktop)
- * - Gestión de filtros temporales por mes y visualización histórica
- * - Integración de datos para el dashboard, transacciones y proyectos
- * - Configuración dinámica de ordenamiento tipo Excel para tablas
+ * - Gestiona el estado global de navegación entre pestañas y submenús.
+ * - Administra filtros globales como el mes seleccionado y el modo de visualización histórico.
+ * - Integra custom hooks para la carga y procesamiento centralizado de datos financieros.
+ * - Proporciona diseño adaptativo (Responsive) alternando entre Sidebar y MobileNav.
+ * - Orquesta el renderizado dinámico de tablas, resúmenes y el panel de control (Dashboard).
  *
- * @returns {JSX.Element} Estructura completa de la aplicación con navegación y vistas activas
+ * @returns {JSX.Element} Estructura completa de la aplicación contenedora con vistas y navegación activas.
  *
  * @imports: react, ./config/constants, ./utils/dateUtils, ./styles/styles, ./hooks/useIsMobile, ./hooks/useSortConfig, ./hooks/useDashboardData, ./hooks/useTransactionsData, ./components/Sidebar, ./components/MobileNav, ./components/AppHeader, ./components/DashboardTab, ./components/TransactionsTable, ./components/ProjectsSummaryTable, ./components/ProjectTransactionsTable, ./index.css
  */
 ```
 
-### `src/components/AppHeader.jsx` (CONTEO DE LINEAS DE CODIGO: 133)
+### `src/components/AppHeader.jsx` (CONTEO DE LINEAS DE CODIGO: 250)
 
 ```jsx
 /**
  * @file AppHeader.jsx
  * @component AppHeader
- * @description Componente de encabezado adaptable que muestra el título de la vista y controles de filtrado temporal.
+ * @description Componente de encabezado adaptable con selector dinámico de fechas y filtros de transacciones.
  *
  * Funcionalidades Clave:
- * - Renderiza dinámicamente el título según la pestaña activa
- * - Incluye un selector desplegable de meses
- * - Proporciona controles de filtrado rápido para transacciones (Todos / Mes actual)
- * - Adapta su diseño responsivo para dispositivos móviles
+ * - Muestra el título de la pestaña activa de manera responsiva.
+ * - Soporta modos de filtrado por mes completo, fecha específica o rango de fechas.
+ * - Incluye controles de acción rápida para alternar entre "Todos los pagos" y "Mes actual".
  *
  * @returns {JSX.Element} Elemento JSX que contiene la cabecera superior de la aplicación.
  *
@@ -190,10 +190,26 @@ FINANCE-REACT
 // src/hooks/useSortConfig.js
 ```
 
-### `src/hooks/useTransactionsData.js` (CONTEO DE LINEAS DE CODIGO: 424)
+### `src/hooks/useTransactionsData.js` (CONTEO DE LINEAS DE CODIGO: 474)
 
 ```javascript
-// src/hooks/useTransactionsData.js
+/**
+ * @file useTransactionsData.js
+ * @component useTransactionsData
+ * @description Hook personalizado para consultar, procesar y calcular métricas financieras de transacciones desde Supabase.
+ *
+ * Funcionalidades Clave:
+ * - Consulta asíncrona de transacciones mensuales e históricas filtradas por persona o proyecto.
+ * - Procesamiento y normalización de montos y nombres de buckets y productos.
+ * - Cálculo dinámico de métricas de resumen, balances anteriores y saldos acumulados.
+ * - Cálculo de intereses mensuales y acumulados para el tab principal.
+ * - Generación de resúmenes globales por proyectos y ordenamiento dinámico de datos.
+ *
+ * @returns {UseTransactionsDataReturn} Objeto con transacciones procesadas, métricas financieras y estado de carga.
+ *
+ * @public:  useTransactionsData
+ * @imports: react, ../supabaseClient, ../config/constants
+ */
 ```
 
 ### `src/index.css` (CONTEO DE LINEAS DE CODIGO: 15)
@@ -228,12 +244,22 @@ FINANCE-REACT
 // src/supabaseClient.js
 ```
 
-### `src/utils/dateUtils.js` (CONTEO DE LINEAS DE CODIGO: 48)
+### `src/utils/dateUtils.js` (CONTEO DE LINEAS DE CODIGO: 79)
 
 ```javascript
-// src/utils/dateUtils.js
-//
-// Funciones puras relacionadas a fechas. Al ser funciones puras (mismo
-// input -> mismo output, sin tocar estado de React) se pueden probar
-// de forma aislada y reutilizar en cualquier parte de la app.
+/**
+ * @file dateUtils.js
+ * @component dateUtils
+ * @description Utilidades para la manipulación y formato de fechas en selectores de meses y años.
+ *
+ * Funcionalidades Clave:
+ * - Obtiene el mes actual en formato "YYYY-MM"
+ * - Construye un listado estático de años disponibles
+ * - Genera nombres de meses en español para interfaces de usuario
+ * - Crea opciones dinámicas de meses basadas en un rango histórico
+ *
+ * @returns {Object} Conjunto de funciones utilitarias para fechas
+ *
+ * @public:  getCurrentMonthString, buildYearOptions, buildMonthNames, buildMonthOptions
+ */
 ```

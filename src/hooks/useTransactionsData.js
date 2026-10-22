@@ -1,4 +1,21 @@
-// src/hooks/useTransactionsData.js
+/**
+ * @file useTransactionsData.js
+ * @component useTransactionsData
+ * @description Hook personalizado para consultar, procesar y calcular métricas financieras de transacciones desde Supabase.
+ *
+ * Funcionalidades Clave:
+ * - Consulta asíncrona de transacciones mensuales e históricas filtradas por persona o proyecto.
+ * - Procesamiento y normalización de montos y nombres de buckets y productos.
+ * - Cálculo dinámico de métricas de resumen, balances anteriores y saldos acumulados.
+ * - Cálculo de intereses mensuales y acumulados para el tab principal.
+ * - Generación de resúmenes globales por proyectos y ordenamiento dinámico de datos.
+ *
+ * @returns {UseTransactionsDataReturn} Objeto con transacciones procesadas, métricas financieras y estado de carga.
+ *
+ * @public:  useTransactionsData
+ * @imports: react, ../supabaseClient, ../config/constants
+ */
+
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
 import { 
@@ -148,16 +165,33 @@ export function useTransactionsData(activeTab, selectedMonth, isTransactionTab, 
   // Evalúa si el tab activo requiere hacer fetch de transacciones
   const shouldFetch = isTransactionTab || isProject;
 
-  // 1. Transacciones del mes seleccionado.
+  // 1. Transacciones del mes seleccionado o rango.
   useEffect(() => {
     if (!shouldFetch) return;
 
     const getTransactions = async () => {
       try {
         setLoading(true);
-        const [ano, mes] = selectedMonth.split('-');
-        const primerDia = `${ano}-${mes}-01`;
-        const ultimoDia = new Date(ano, mes, 0).toISOString().split('T')[0];
+        let primerDia, ultimoDia;
+
+        if (selectedMonth && selectedMonth.includes('_')) {
+          const partes = selectedMonth.split('_');
+          primerDia = partes[0];
+          ultimoDia = partes[1] || partes[0];
+        } else if (selectedMonth && selectedMonth.length === 10) {
+          primerDia = selectedMonth;
+          ultimoDia = selectedMonth;
+        } else {
+          const [ano, mes] = (selectedMonth || '').split('-');
+          if (ano && mes) {
+            primerDia = `${ano}-${mes}-01`;
+            ultimoDia = new Date(ano, mes, 0).toISOString().split('T')[0];
+          } else {
+            const today = new Date().toISOString().split('T')[0];
+            primerDia = today;
+            ultimoDia = today;
+          }
+        }
 
         let query = supabase
           .from('transactions')
@@ -268,7 +302,23 @@ export function useTransactionsData(activeTab, selectedMonth, isTransactionTab, 
   const metricasHistoricas = useMemo(() => {
     if (!selectedMonth) return { balanceTotal: 0, balanceAnterior: 0, balanceTotalALaFecha: 0 };
 
-    const [ano, mes] = selectedMonth.split('-');
+    let ano, mes;
+    if (selectedMonth.includes('_')) {
+      const partes = selectedMonth.split('_');
+      const baseDate = partes[0];
+      const partsDate = baseDate.split('-');
+      ano = partsDate[0];
+      mes = partsDate[1] || '01';
+    } else if (selectedMonth.length === 10) {
+      const partsDate = selectedMonth.split('-');
+      ano = partsDate[0];
+      mes = partsDate[1] || '01';
+    } else {
+      const partes = selectedMonth.split('-');
+      ano = partes[0];
+      mes = partes[1] || '01';
+    }
+
     const primerDiaMesSeleccionado = `${ano}-${mes}-01`;
     const ultimoDiaNum = new Date(Number(ano), Number(mes), 0).getDate();
     const ultimoDiaMesSeleccionado = `${ano}-${mes}-${String(ultimoDiaNum).padStart(2, '0')}`;

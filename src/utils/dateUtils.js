@@ -1,8 +1,18 @@
-// src/utils/dateUtils.js
-//
-// Funciones puras relacionadas a fechas. Al ser funciones puras (mismo
-// input -> mismo output, sin tocar estado de React) se pueden probar
-// de forma aislada y reutilizar en cualquier parte de la app.
+/**
+ * @file dateUtils.js
+ * @component dateUtils
+ * @description Utilidades para la manipulación y formato de fechas en selectores de meses y años.
+ *
+ * Funcionalidades Clave:
+ * - Obtiene el mes actual en formato "YYYY-MM"
+ * - Construye un listado estático de años disponibles
+ * - Genera nombres de meses en español para interfaces de usuario
+ * - Crea opciones dinámicas de meses basadas en un rango histórico
+ *
+ * @returns {Object} Conjunto de funciones utilitarias para fechas
+ *
+ * @public:  getCurrentMonthString, buildYearOptions, buildMonthNames, buildMonthOptions
+ */
 
 /**
  * Regresa el mes actual en formato "YYYY-MM", usado como valor por
@@ -26,6 +36,27 @@ export function getCurrentMonthString() {
  * mover ese valor a una constante configurable o calcularlo en base a
  * la fecha actual (por ejemplo: "N meses antes y después de hoy").
  */
+export function buildYearOptions() {
+  return [2023, 2024, 2025, 2026, 2027];
+}
+
+export function buildMonthNames() {
+  return [
+    { value: '01', label: 'ENERO' },
+    { value: '02', label: 'FEBRERO' },
+    { value: '03', label: 'MARZO' },
+    { value: '04', label: 'ABRIL' },
+    { value: '05', label: 'MAYO' },
+    { value: '06', label: 'JUNIO' },
+    { value: '07', label: 'JULIO' },
+    { value: '08', label: 'AGOSTO' },
+    { value: '09', label: 'SEPTIEMBRE' },
+    { value: '10', label: 'OCTUBRE' },
+    { value: '11', label: 'NOVIEMBRE' },
+    { value: '12', label: 'DICIEMBRE' }
+  ];
+}
+
 export function buildMonthOptions() {
   const opciones = [];
   const fechaInicio = new Date(2027, 8, 1); // ver nota arriba

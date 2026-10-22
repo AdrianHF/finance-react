@@ -1,15 +1,16 @@
 /**
  * @file App.jsx
  * @component App
- * @description Componente raíz que gestiona el estado global de navegación, filtros y sincronización de hooks para la aplicación Dineros.
+ * @description Componente raíz que orquesta la navegación, filtros globales y vistas principales de la aplicación Dineros.
  *
  * Funcionalidades Clave:
- * - Orquestación de pestañas activas y diseño adaptativo (Mobile/Desktop)
- * - Gestión de filtros temporales por mes y visualización histórica
- * - Integración de datos para el dashboard, transacciones y proyectos
- * - Configuración dinámica de ordenamiento tipo Excel para tablas
+ * - Gestiona el estado global de navegación entre pestañas y submenús.
+ * - Administra filtros globales como el mes seleccionado y el modo de visualización histórico.
+ * - Integra custom hooks para la carga y procesamiento centralizado de datos financieros.
+ * - Proporciona diseño adaptativo (Responsive) alternando entre Sidebar y MobileNav.
+ * - Orquesta el renderizado dinámico de tablas, resúmenes y el panel de control (Dashboard).
  *
- * @returns {JSX.Element} Estructura completa de la aplicación con navegación y vistas activas
+ * @returns {JSX.Element} Estructura completa de la aplicación contenedora con vistas y navegación activas.
  *
  * @imports: react, ./config/constants, ./utils/dateUtils, ./styles/styles, ./hooks/useIsMobile, ./hooks/useSortConfig, ./hooks/useDashboardData, ./hooks/useTransactionsData, ./components/Sidebar, ./components/MobileNav, ./components/AppHeader, ./components/DashboardTab, ./components/TransactionsTable, ./components/ProjectsSummaryTable, ./components/ProjectTransactionsTable, ./index.css
  */
@@ -68,10 +69,11 @@ function App() {
   const isMobile = useIsMobile(768);
 
   // --- Estado de filtros compartidos entre tabs ---
-  /** @type {[string, React.Dispatch<React.SetStateAction<string>>]} Mes seleccionado en formato "YYYY-MM" */
+  /** @type {[string, React.Dispatch<React.SetStateAction<string>>]} Mes seleccionado ("YYYY-MM"), fecha ("YYYY-MM-DD") o rango ("YYYY-MM-DD_YYYY-MM-DD") */
+  /** @type {[string, React.Dispatch<React.SetStateAction<string>>]} Mes seleccionado en formato "YYYY-MM" o fecha "YYYY-MM-DD" */
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonthString());
 
-  /** @type {[boolean, React.Dispatch<React.SetStateAction<boolean>>]} Modode vista: true para histórico completo, false para mes activo */
+  /** @type {[boolean, React.Dispatch<React.SetStateAction<boolean>>]} Modo de vista: true para histórico completo, false para mes activo */
   const [mostrarTodos, setMostrarTodos] = useState(false);
 
   /** @type {[string|number, React.Dispatch<React.SetStateAction<string|number>>]} Presupuesto o monto libre ingresado en el Dashboard */
