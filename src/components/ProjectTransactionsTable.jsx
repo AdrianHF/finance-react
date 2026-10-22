@@ -1,16 +1,15 @@
 /**
  * @file ProjectTransactionsTable.jsx
  * @component ProjectTransactionsTable
- * @description Muestra el historial detallado de transacciones de un proyecto con filtros, ordenamiento y métricas financieras resumidas.
+ * @description Muestra el listado detallado de transacciones y movimientos de un proyecto con filtros, métricas y agrupación por pagador.
  *
  * Funcionalidades Clave:
- * - Renderiza una tabla responsiva con scroll horizontal adaptable para dispositivos móviles.
- * - Calcula y muestra métricas consolidadas de costos, ingresos programados y balance total.
- * - Permite filtrar los movimientos dinámicamente por tipo (todos, costos o ingresos).
- * - Soporta ordenamiento interactivo de columnas mediante callbacks externos.
- * - Formatea importes monetarios con separadores de miles y dos decimales, aplicando colores según el signo.
+ * - Filtrado dinámico de movimientos por tipo (todos, costos o ingresos).
+ * - Cálculo automático y visualización de métricas de costos, ingresos programados y total neto.
+ * - Agrupamiento y resumen de montos por cada entidad pagadora o prestamista.
+ * - Soporte para ordenamiento de columnas y diseño responsivo adaptado para dispositivos móviles.
  *
- * @returns {JSX.Element} Vista de tabla con el listado de movimientos y métricas consolidadas.
+ * @returns {JSX.Element} Vista de tabla con el listado de transacciones y métricas consolidadas.
  *
  * @public:  ProjectTransactionsTable
  * @imports: react, prop-types, ../styles/styles
@@ -66,6 +65,19 @@ export default function ProjectTransactionsTable({
   getSortIcon,
 }) {
   const [filtroMovimiento, setFiltroMovimiento] = React.useState('todos');
+
+  const payerTotals = sortedData.reduce((acc, t) => {
+    const name = t.payer_loaner_name || 'Sin Pagador';
+    const val = Number(t.amount) || 0;
+    if (!acc[name]) {
+      acc[name] = { total: 0, count: 0 };
+    }
+    acc[name].total += val;
+    acc[name].count += 1;
+    return acc;
+  }, {});
+
+  const payerEntries = Object.entries(payerTotals).sort((a, b) => Math.abs(b[1].total) - Math.abs(a[1].total));
 
   /**
    * Helper para formatear valores a moneda (US Dollars) con 2 decimales.
@@ -176,6 +188,88 @@ export default function ProjectTransactionsTable({
             alignItems: 'center',
           }}
         >
+
+      {/* Visualización agrupada por PAGADOR */}
+      {payerEntries.length > 0 && (
+        <div
+          style={{
+            marginBottom: '20px',
+            padding: '16px',
+            backgroundColor: '#f8fafc',
+            borderRadius: '8px',
+            border: '1px solid #e2e8f0',
+          }}
+        >
+          <span
+            style={{
+              fontSize: '12px',
+              fontWeight: '700',
+              color: '#475569',
+              textTransform: 'uppercase',
+              display: 'block',
+              marginBottom: '12px',
+            }}
+          >
+            Monto por Pagador
+          </span>
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '12px',
+            }}
+          >
+            {payerEntries.map(([payerName, data]) => (
+              <div
+                key={payerName}
+                style={{
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  padding: '10px 14px',
+                  minWidth: '150px',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
+                }}
+              >
+                <span
+                  style={{
+                    display: 'block',
+                    fontSize: '11px',
+                    fontWeight: '600',
+                    color: '#64748b',
+                    marginBottom: '4px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {payerName}
+                </span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                  <span
+                    style={{
+                      fontSize: '15px',
+                      fontWeight: '800',
+                      color: data.total >= 0 ? '#588157' : '#8d402a',
+                    }}
+                  >
+                    {data.total >= 0 ? '' : '-'}${fmt(Math.abs(data.total))}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '10px',
+                      color: '#94a3b8',
+                      fontWeight: '600',
+                    }}
+                  >
+                    {data.count} {data.count === 1 ? 'mov.' : 'movs.'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
           {/* Métrica 1: Costos (Suma de negativos) */}
           <div>
             <span

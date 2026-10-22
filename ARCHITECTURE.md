@@ -96,22 +96,21 @@ FINANCE-REACT
 // src/components/MobileNav.jsx
 ```
 
-### `src/components/ProjectTransactionsTable.jsx` (CONTEO DE LINEAS DE CODIGO: 341)
+### `src/components/ProjectTransactionsTable.jsx` (CONTEO DE LINEAS DE CODIGO: 435)
 
 ```jsx
 /**
  * @file ProjectTransactionsTable.jsx
  * @component ProjectTransactionsTable
- * @description Muestra el historial detallado de transacciones de un proyecto con filtros, ordenamiento y métricas financieras resumidas.
+ * @description Muestra el listado detallado de transacciones y movimientos de un proyecto con filtros, métricas y agrupación por pagador.
  *
  * Funcionalidades Clave:
- * - Renderiza una tabla responsiva con scroll horizontal adaptable para dispositivos móviles.
- * - Calcula y muestra métricas consolidadas de costos, ingresos programados y balance total.
- * - Permite filtrar los movimientos dinámicamente por tipo (todos, costos o ingresos).
- * - Soporta ordenamiento interactivo de columnas mediante callbacks externos.
- * - Formatea importes monetarios con separadores de miles y dos decimales, aplicando colores según el signo.
+ * - Filtrado dinámico de movimientos por tipo (todos, costos o ingresos).
+ * - Cálculo automático y visualización de métricas de costos, ingresos programados y total neto.
+ * - Agrupamiento y resumen de montos por cada entidad pagadora o prestamista.
+ * - Soporte para ordenamiento de columnas y diseño responsivo adaptado para dispositivos móviles.
  *
- * @returns {JSX.Element} Vista de tabla con el listado de movimientos y métricas consolidadas.
+ * @returns {JSX.Element} Vista de tabla con el listado de transacciones y métricas consolidadas.
  *
  * @public:  ProjectTransactionsTable
  * @imports: react, prop-types, ../styles/styles
