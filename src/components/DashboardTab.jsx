@@ -1,4 +1,20 @@
-// src/components/DashboardTab.jsx
+/**
+ * @file DashboardTab.jsx
+ * @component DashboardTab
+ * @description Muestra el resumen financiero mensual y la tabla detallada de pagos con calculadora de saldo disponible en tiempo real.
+ *
+ * Funcionalidades Clave:
+ * - Visualización de métricas financieras generales (Pagado, Por Pagar, Total Mensual).
+ * - Calculadora interactiva para determinar el saldo faltante contra el monto disponible ingresado.
+ * - Tabla detallada de productos con soporte para ordenamiento por columnas.
+ * - Adaptabilidad de diseño responsivo para dispositivos móviles y de escritorio.
+ *
+ * @returns {JSX.Element} Vista del Dashboard del usuario.
+ *
+ * @public:  DashboardTab
+ * @imports: react, prop-types, ../styles/styles
+ */
+
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -175,6 +191,12 @@ export default function DashboardTab({
               <th style={thStyle} onClick={() => requestSort('name')}>
                 Producto {getSortIcon('name')}
               </th>
+              <th style={thStyle} onClick={() => requestSort('starting_period')}>
+                Inicio Período {getSortIcon('starting_period')}
+              </th>
+              <th style={thStyle} onClick={() => requestSort('ending_period')}>
+                Fin Período {getSortIcon('ending_period')}
+              </th>
               <th style={thStyle} onClick={() => requestSort('payday_limit')}>
                 Fecha Límite {getSortIcon('payday_limit')}
               </th>
@@ -199,6 +221,20 @@ export default function DashboardTab({
                   {/* Nombre del producto */}
                   <td style={{ ...tdStyle, fontWeight: '500' }}>{item.name}</td>
                   
+                  {/* Inicio Período */}
+                  <td style={tdStyle}>
+                    {tieneInformacionEsteMes && !esInactivoONoAplica && statement.starting_period
+                      ? statement.starting_period
+                      : <span style={emptyDashStyle}>—</span>}
+                  </td>
+
+                  {/* Fin Período */}
+                  <td style={tdStyle}>
+                    {tieneInformacionEsteMes && !esInactivoONoAplica && statement.ending_period
+                      ? statement.ending_period
+                      : <span style={emptyDashStyle}>—</span>}
+                  </td>
+
                   {/* Fecha Límite de Pago */}
                   <td style={tdStyle}>
                     {tieneInformacionEsteMes && !esInactivoONoAplica && statement.payday_limit

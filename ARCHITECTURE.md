@@ -84,10 +84,25 @@ FINANCE-REACT
  */
 ```
 
-### `src/components/DashboardTab.jsx` (CONTEO DE LINEAS DE CODIGO: 230)
+### `src/components/DashboardTab.jsx` (CONTEO DE LINEAS DE CODIGO: 266)
 
 ```jsx
-// src/components/DashboardTab.jsx
+/**
+ * @file DashboardTab.jsx
+ * @component DashboardTab
+ * @description Muestra el resumen financiero mensual y la tabla detallada de pagos con calculadora de saldo disponible en tiempo real.
+ *
+ * Funcionalidades Clave:
+ * - Visualización de métricas financieras generales (Pagado, Por Pagar, Total Mensual).
+ * - Calculadora interactiva para determinar el saldo faltante contra el monto disponible ingresado.
+ * - Tabla detallada de productos con soporte para ordenamiento por columnas.
+ * - Adaptabilidad de diseño responsivo para dispositivos móviles y de escritorio.
+ *
+ * @returns {JSX.Element} Vista del Dashboard del usuario.
+ *
+ * @public:  DashboardTab
+ * @imports: react, prop-types, ../styles/styles
+ */
 ```
 
 ### `src/components/MobileNav.jsx` (CONTEO DE LINEAS DE CODIGO: 63)
@@ -171,10 +186,25 @@ FINANCE-REACT
 // src/config/constants.js
 ```
 
-### `src/hooks/useDashboardData.js` (CONTEO DE LINEAS DE CODIGO: 145)
+### `src/hooks/useDashboardData.js` (CONTEO DE LINEAS DE CODIGO: 206)
 
 ```javascript
-// src/hooks/useDashboardData.js
+/**
+ * @file useDashboardData.js
+ * @component useDashboardData
+ * @description Hook personalizado para gestionar la obtención, filtrado y cálculo de métricas financieras del dashboard desde Supabase.
+ *
+ * Funcionalidades Clave:
+ * - Consulta productos y estados de cuenta filtrados por mes activo desde Supabase.
+ * - Calcula automáticamente las métricas financieras (pagado, por pagar, total general).
+ * - Aplica ordenamiento dinámico multi-columna a los datos de la tabla.
+ * - Gestiona el estado de carga y optimiza peticiones según la pestaña activa.
+ *
+ * @returns {UseDashboardDataReturn} Objeto con los datos ordenados, métricas financieras y estado de carga.
+ *
+ * @public:  useDashboardData
+ * @imports: react, ../supabaseClient
+ */
 ```
 
 ### `src/hooks/useIsMobile.js` (CONTEO DE LINEAS DE CODIGO: 27)

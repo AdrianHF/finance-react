@@ -1,4 +1,20 @@
-// src/hooks/useDashboardData.js
+/**
+ * @file useDashboardData.js
+ * @component useDashboardData
+ * @description Hook personalizado para gestionar la obtención, filtrado y cálculo de métricas financieras del dashboard desde Supabase.
+ *
+ * Funcionalidades Clave:
+ * - Consulta productos y estados de cuenta filtrados por mes activo desde Supabase.
+ * - Calcula automáticamente las métricas financieras (pagado, por pagar, total general).
+ * - Aplica ordenamiento dinámico multi-columna a los datos de la tabla.
+ * - Gestiona el estado de carga y optimiza peticiones según la pestaña activa.
+ *
+ * @returns {UseDashboardDataReturn} Objeto con los datos ordenados, métricas financieras y estado de carga.
+ *
+ * @public:  useDashboardData
+ * @imports: react, ../supabaseClient
+ */
+
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
 
@@ -72,7 +88,7 @@ export function useDashboardData(activeTab, selectedMonth, sortConfig) {
 
         const { data, error } = await supabase
           .from('products')
-          .select(`*, bank_statements!product(bank_statement_id, payday_limit, amount, status)`)
+          .select(`*, bank_statements!product(bank_statement_id, starting_period, ending_period, payday_limit, amount, status)`)
           .or(`payday_limit.gte.${primerDiaMes},status.eq.PRODUCTO INACTIVO`, { foreignTable: 'bank_statements' })
           .or(`payday_limit.lte.${ultimoDiaMes},status.eq.PRODUCTO INACTIVO`, { foreignTable: 'bank_statements' });
 
@@ -125,9 +141,54 @@ export function useDashboardData(activeTab, selectedMonth, sortConfig) {
           if (sortConfig.key === 'amount') {
             aValue = aStatement && aStatement.amount ? parseFloat(aStatement.amount) : -1;
             bValue = bStatement && bStatement.amount ? parseFloat(bStatement.amount) : -1;
+          } else if (sortConfig.key === 'starting_period') {
+            const aHas = aStatement && aStatement.starting_period;
+            const bHas = bStatement && bStatement.starting_period;
+            if (!aHas && !bHas) {
+              aValue = 0;
+              bValue = 0;
+            } else if (!aHas) {
+              aValue = sortConfig.direction === 'asc' ? '0000-01-01' : '9999-12-31';
+              bValue = bStatement.starting_period;
+            } else if (!bHas) {
+              aValue = aStatement.starting_period;
+              bValue = sortConfig.direction === 'asc' ? '0000-01-01' : '9999-12-31';
+            } else {
+              aValue = aStatement.starting_period;
+              bValue = bStatement.starting_period;
+            }
+          } else if (sortConfig.key === 'ending_period') {
+            const aHas = aStatement && aStatement.ending_period;
+            const bHas = bStatement && bStatement.ending_period;
+            if (!aHas && !bHas) {
+              aValue = 0;
+              bValue = 0;
+            } else if (!aHas) {
+              aValue = sortConfig.direction === 'asc' ? '0000-01-01' : '9999-12-31';
+              bValue = bStatement.ending_period;
+            } else if (!bHas) {
+              aValue = aStatement.ending_period;
+              bValue = sortConfig.direction === 'asc' ? '0000-01-01' : '9999-12-31';
+            } else {
+              aValue = aStatement.ending_period;
+              bValue = bStatement.ending_period;
+            }
           } else if (sortConfig.key === 'payday_limit') {
-            aValue = aStatement ? aStatement.payday_limit : '';
-            bValue = bStatement ? bStatement.payday_limit : '';
+            const aHas = aStatement && aStatement.payday_limit;
+            const bHas = bStatement && bStatement.payday_limit;
+            if (!aHas && !bHas) {
+              aValue = 0;
+              bValue = 0;
+            } else if (!aHas) {
+              aValue = sortConfig.direction === 'asc' ? '0000-01-01' : '9999-12-31';
+              bValue = bStatement.payday_limit;
+            } else if (!bHas) {
+              aValue = aStatement.payday_limit;
+              bValue = sortConfig.direction === 'asc' ? '0000-01-01' : '9999-12-31';
+            } else {
+              aValue = aStatement.payday_limit;
+              bValue = bStatement.payday_limit;
+            }
           } else if (sortConfig.key === 'status') {
             aValue = aStatement ? aStatement.status : 'FALTA CAPTURAR';
             bValue = bStatement ? bStatement.status : 'FALTA CAPTURAR';
