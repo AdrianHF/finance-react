@@ -158,22 +158,21 @@ FINANCE-REACT
  */
 ```
 
-### `src/components/TransactionsTable.jsx` (CONTEO DE LINEAS DE CODIGO: 253)
+### `src/components/TransactionsTable.jsx` (CONTEO DE LINEAS DE CODIGO: 365)
 
 ```jsx
 /**
  * @file TransactionsTable.jsx
  * @component TransactionsTable
- * @description Tabla principal de movimientos con resumen dinámico de métricas financieras y soporte para ordenamiento y dispositivos móviles.
+ * @description Tabla interactiva para visualizar y filtrar transacciones financieras con resumen de métricas mensuales.
  *
  * Funcionalidades Clave:
- * - Muestra un listado detallado de transacciones con fechas, descripciones, cubetas y montos con formato monetario.
- * - Incluye cabecera de métricas financieras con adeudos, acumulados, pagos del mes y totales a pagar.
- * - Soporta visualización exclusiva de intereses para la pestaña de tipo 'padre'.
- * - Permite ordenar dinámicamente la tabla haciendo clic en las columnas con indicadores visuales.
- * - Se adapta de manera responsiva a pantallas móviles ajustando la disposición de tarjetas y el desplazamiento horizontal.
+ * - Visualización de métricas financieras del mes (pagos, adeudos, acumulados e intereses).
+ * - Filtrado en tiempo real por columna (fecha, descripción, bucket, producto y monto).
+ * - Ordenamiento dinámico de transacciones con indicadores visuales.
+ * - Diseño adaptativo (responsive) para dispositivos móviles y de escritorio.
  *
- * @returns {JSX.Element} Elemento JSX que renderiza la tabla de transacciones y su resumen de métricas.
+ * @returns {JSX.Element} Elemento JSX que renderiza la tabla de transacciones y su cabecera de métricas.
  *
  * @public:  TransactionsTable
  * @imports: react, ../styles/styles

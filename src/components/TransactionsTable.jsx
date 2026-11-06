@@ -1,22 +1,21 @@
 /**
  * @file TransactionsTable.jsx
  * @component TransactionsTable
- * @description Tabla principal de movimientos con resumen dinámico de métricas financieras y soporte para ordenamiento y dispositivos móviles.
+ * @description Tabla interactiva para visualizar y filtrar transacciones financieras con resumen de métricas mensuales.
  *
  * Funcionalidades Clave:
- * - Muestra un listado detallado de transacciones con fechas, descripciones, cubetas y montos con formato monetario.
- * - Incluye cabecera de métricas financieras con adeudos, acumulados, pagos del mes y totales a pagar.
- * - Soporta visualización exclusiva de intereses para la pestaña de tipo 'padre'.
- * - Permite ordenar dinámicamente la tabla haciendo clic en las columnas con indicadores visuales.
- * - Se adapta de manera responsiva a pantallas móviles ajustando la disposición de tarjetas y el desplazamiento horizontal.
+ * - Visualización de métricas financieras del mes (pagos, adeudos, acumulados e intereses).
+ * - Filtrado en tiempo real por columna (fecha, descripción, bucket, producto y monto).
+ * - Ordenamiento dinámico de transacciones con indicadores visuales.
+ * - Diseño adaptativo (responsive) para dispositivos móviles y de escritorio.
  *
- * @returns {JSX.Element} Elemento JSX que renderiza la tabla de transacciones y su resumen de métricas.
+ * @returns {JSX.Element} Elemento JSX que renderiza la tabla de transacciones y su cabecera de métricas.
  *
  * @public:  TransactionsTable
  * @imports: react, ../styles/styles
  */
 
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   tableCardStyle,
   metricsHeaderContainer,
@@ -88,6 +87,34 @@ export default function TransactionsTable({
   requestSort,
   getSortIcon,
 }) {
+  const [searchFilters, setSearchFilters] = useState({
+    date: '',
+    description: '',
+    money_bucket_name: '',
+    product_name: '',
+    amount: '',
+  });
+  const [activeSearchCol, setActiveSearchCol] = useState(null);
+
+  const handleSearchChange = (col, val) => {
+    setSearchFilters((prev) => ({ ...prev, [col]: val }));
+  };
+
+  const filteredData = useMemo(() => {
+    return sortedData.filter((t) => {
+      const dateMatch = String(t.date || '').toLowerCase().includes(searchFilters.date.toLowerCase());
+      const descMatch = String(t.description || '').toLowerCase().includes(searchFilters.description.toLowerCase());
+      const bucketMatch = String(t.money_bucket_name || '').toLowerCase().includes(searchFilters.money_bucket_name.toLowerCase());
+      const productMatch = String(t.product_name || '').toLowerCase().includes(searchFilters.product_name.toLowerCase());
+      const amountStr = (t.amount >= 0 ? '+' : '') + t.amount.toFixed(2);
+      const amountMatch = String(t.amount).toLowerCase().includes(searchFilters.amount.toLowerCase()) || amountStr.toLowerCase().includes(searchFilters.amount.toLowerCase());
+      return dateMatch && descMatch && bucketMatch && productMatch && amountMatch;
+    });
+  }, [sortedData, searchFilters]);
+
+  const toggleSearchCol = (col) => {
+    setActiveSearchCol((prev) => (prev === col ? null : col));
+  };
   /**
    * Formatea un número al estándar monetario en inglés con 2 decimales.
    * @param {number} n - Número a formatear.
@@ -216,22 +243,107 @@ export default function TransactionsTable({
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: isMobile ? '650px' : 'auto' }}>
           <thead>
             <tr>
-              <th style={thStyle} onClick={() => requestSort('date')}>Fecha {getSortIcon('date')}</th>
-              <th style={thStyle} onClick={() => requestSort('description')}>Descripción {getSortIcon('description')}</th>
-              <th style={thStyle} onClick={() => requestSort('money_bucket_name')}>Money Bucket {getSortIcon('money_bucket_name')}</th>
-              <th style={thStyle} onClick={() => requestSort('product_name')}>Producto {getSortIcon('product_name')}</th>
-              <th style={{ ...thStyle, textAlign: 'right' }} onClick={() => requestSort('amount')}>Monto {getSortIcon('amount')}</th>
+              <th style={thStyle}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                  <span onClick={() => requestSort('date')} style={{ cursor: 'pointer', flex: 1 }}>Fecha {getSortIcon('date')}</span>
+                  <span onClick={() => toggleSearchCol('date')} style={{ cursor: 'pointer', fontSize: '14px' }} title="Buscar por Fecha">🔍</span>
+                </div>
+                {activeSearchCol === 'date' && (
+                  <div style={{ marginTop: '6px' }}>
+                    <input
+                      type="text"
+                      placeholder="Filtrar fecha..."
+                      value={searchFilters.date}
+                      onChange={(e) => handleSearchChange('date', e.target.value)}
+                      style={{ width: '100%', padding: '4px 6px', fontSize: '12px', borderRadius: '4px', border: '1px solid #cbd5e1', outline: 'none' }}
+                      autoFocus
+                    />
+                  </div>
+                )}
+              </th>
+              <th style={thStyle}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                  <span onClick={() => requestSort('description')} style={{ cursor: 'pointer', flex: 1 }}>Descripción {getSortIcon('description')}</span>
+                  <span onClick={() => toggleSearchCol('description')} style={{ cursor: 'pointer', fontSize: '14px' }} title="Buscar por Descripción">🔍</span>
+                </div>
+                {activeSearchCol === 'description' && (
+                  <div style={{ marginTop: '6px' }}>
+                    <input
+                      type="text"
+                      placeholder="Filtrar descripción..."
+                      value={searchFilters.description}
+                      onChange={(e) => handleSearchChange('description', e.target.value)}
+                      style={{ width: '100%', padding: '4px 6px', fontSize: '12px', borderRadius: '4px', border: '1px solid #cbd5e1', outline: 'none' }}
+                      autoFocus
+                    />
+                  </div>
+                )}
+              </th>
+              <th style={thStyle}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                  <span onClick={() => requestSort('money_bucket_name')} style={{ cursor: 'pointer', flex: 1 }}>Money Bucket {getSortIcon('money_bucket_name')}</span>
+                  <span onClick={() => toggleSearchCol('money_bucket_name')} style={{ cursor: 'pointer', fontSize: '14px' }} title="Buscar por Money Bucket">🔍</span>
+                </div>
+                {activeSearchCol === 'money_bucket_name' && (
+                  <div style={{ marginTop: '6px' }}>
+                    <input
+                      type="text"
+                      placeholder="Filtrar bucket..."
+                      value={searchFilters.money_bucket_name}
+                      onChange={(e) => handleSearchChange('money_bucket_name', e.target.value)}
+                      style={{ width: '100%', padding: '4px 6px', fontSize: '12px', borderRadius: '4px', border: '1px solid #cbd5e1', outline: 'none' }}
+                      autoFocus
+                    />
+                  </div>
+                )}
+              </th>
+              <th style={thStyle}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                  <span onClick={() => requestSort('product_name')} style={{ cursor: 'pointer', flex: 1 }}>Producto {getSortIcon('product_name')}</span>
+                  <span onClick={() => toggleSearchCol('product_name')} style={{ cursor: 'pointer', fontSize: '14px' }} title="Buscar por Producto">🔍</span>
+                </div>
+                {activeSearchCol === 'product_name' && (
+                  <div style={{ marginTop: '6px' }}>
+                    <input
+                      type="text"
+                      placeholder="Filtrar producto..."
+                      value={searchFilters.product_name}
+                      onChange={(e) => handleSearchChange('product_name', e.target.value)}
+                      style={{ width: '100%', padding: '4px 6px', fontSize: '12px', borderRadius: '4px', border: '1px solid #cbd5e1', outline: 'none' }}
+                      autoFocus
+                    />
+                  </div>
+                )}
+              </th>
+              <th style={{ ...thStyle, textAlign: 'right' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
+                  <span onClick={() => requestSort('amount')} style={{ cursor: 'pointer' }}>Monto {getSortIcon('amount')}</span>
+                  <span onClick={() => toggleSearchCol('amount')} style={{ cursor: 'pointer', fontSize: '14px' }} title="Buscar por Monto">🔍</span>
+                </div>
+                {activeSearchCol === 'amount' && (
+                  <div style={{ marginTop: '6px', textAlign: 'left' }}>
+                    <input
+                      type="text"
+                      placeholder="Filtrar monto..."
+                      value={searchFilters.amount}
+                      onChange={(e) => handleSearchChange('amount', e.target.value)}
+                      style={{ width: '100%', padding: '4px 6px', fontSize: '12px', borderRadius: '4px', border: '1px solid #cbd5e1', outline: 'none' }}
+                      autoFocus
+                    />
+                  </div>
+                )}
+              </th>
             </tr>
           </thead>
           <tbody>
-            {sortedData.length === 0 ? (
+            {filteredData.length === 0 ? (
               <tr>
                 <td colSpan="5" style={{ ...tdStyle, textAlign: 'center', color: '#94a3b8', padding: '30px' }}>
-                  No hay transacciones registradas para este periodo.
+                  No hay transacciones registradas que coincidan con la búsqueda.
                 </td>
               </tr>
             ) : (
-              sortedData.map((t) => (
+              filteredData.map((t) => (
                 <tr key={t.transaction_id} style={trHoverStyle}>
                   <td style={tdStyle}>{t.date}</td>
                   <td style={tdStyle}>{t.description || <span style={emptyDashStyle}>sin descripción</span>}</td>
