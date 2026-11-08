@@ -1,13 +1,14 @@
 /**
  * @file TransactionsTable.jsx
  * @component TransactionsTable
- * @description Tabla interactiva para visualizar y filtrar transacciones financieras con resumen de métricas mensuales.
+ * @description Tabla interactiva de transacciones financieras con métricas de resumen y filtros por columna.
  *
  * Funcionalidades Clave:
- * - Visualización de métricas financieras del mes (pagos, adeudos, acumulados e intereses).
- * - Filtrado en tiempo real por columna (fecha, descripción, bucket, producto y monto).
- * - Ordenamiento dinámico de transacciones con indicadores visuales.
- * - Diseño adaptativo (responsive) para dispositivos móviles y de escritorio.
+ * - Visualización de métricas mensuales (pagado, por pagar, adeudos y acumulados anteriores).
+ * - Soporte para sección exclusiva de intereses en la pestaña 'padre'.
+ * - Filtrado dinámico en tiempo real por cada columna de la tabla.
+ * - Ordenamiento interactivo de columnas mediante callbacks personalizados.
+ * - Diseño adaptable (responsive) para dispositivos móviles y de escritorio.
  *
  * @returns {JSX.Element} Elemento JSX que renderiza la tabla de transacciones y su cabecera de métricas.
  *
@@ -244,9 +245,9 @@ export default function TransactionsTable({
           <thead>
             <tr>
               <th style={thStyle}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                  <span onClick={() => requestSort('date')} style={{ cursor: 'pointer', flex: 1 }}>Fecha {getSortIcon('date')}</span>
-                  <span onClick={() => toggleSearchCol('date')} style={{ cursor: 'pointer', fontSize: '14px' }} title="Buscar por Fecha">🔍</span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                  <span onClick={() => requestSort('date')} style={{ cursor: 'pointer', flex: 1, display: 'flex', alignItems: 'center', gap: '6px' }}>Fecha {getSortIcon('date')}</span>
+                  <img src="/magnifier.svg" alt="Buscar" onClick={() => toggleSearchCol('date')} style={{ width: '14px', height: '14px', verticalAlign: 'middle', cursor: 'pointer' }} title="Buscar por Fecha" />
                 </div>
                 {activeSearchCol === 'date' && (
                   <div style={{ marginTop: '6px' }}>
@@ -262,9 +263,9 @@ export default function TransactionsTable({
                 )}
               </th>
               <th style={thStyle}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                  <span onClick={() => requestSort('description')} style={{ cursor: 'pointer', flex: 1 }}>Descripción {getSortIcon('description')}</span>
-                  <span onClick={() => toggleSearchCol('description')} style={{ cursor: 'pointer', fontSize: '14px' }} title="Buscar por Descripción">🔍</span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                  <span onClick={() => requestSort('description')} style={{ cursor: 'pointer', flex: 1, display: 'flex', alignItems: 'center', gap: '6px' }}>Descripción {getSortIcon('description')}</span>
+                  <img src="/magnifier.svg" alt="Buscar" onClick={() => toggleSearchCol('description')} style={{ width: '14px', height: '14px', verticalAlign: 'middle', cursor: 'pointer' }} title="Buscar por Descripción" />
                 </div>
                 {activeSearchCol === 'description' && (
                   <div style={{ marginTop: '6px' }}>
@@ -280,9 +281,9 @@ export default function TransactionsTable({
                 )}
               </th>
               <th style={thStyle}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                  <span onClick={() => requestSort('money_bucket_name')} style={{ cursor: 'pointer', flex: 1 }}>Money Bucket {getSortIcon('money_bucket_name')}</span>
-                  <span onClick={() => toggleSearchCol('money_bucket_name')} style={{ cursor: 'pointer', fontSize: '14px' }} title="Buscar por Money Bucket">🔍</span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                  <span onClick={() => requestSort('money_bucket_name')} style={{ cursor: 'pointer', flex: 1, display: 'flex', alignItems: 'center', gap: '6px' }}>Money Bucket {getSortIcon('money_bucket_name')}</span>
+                  <img src="/magnifier.svg" alt="Buscar" onClick={() => toggleSearchCol('money_bucket_name')} style={{ width: '14px', height: '14px', verticalAlign: 'middle', cursor: 'pointer' }} title="Buscar por Money Bucket" />
                 </div>
                 {activeSearchCol === 'money_bucket_name' && (
                   <div style={{ marginTop: '6px' }}>
@@ -298,9 +299,9 @@ export default function TransactionsTable({
                 )}
               </th>
               <th style={thStyle}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                  <span onClick={() => requestSort('product_name')} style={{ cursor: 'pointer', flex: 1 }}>Producto {getSortIcon('product_name')}</span>
-                  <span onClick={() => toggleSearchCol('product_name')} style={{ cursor: 'pointer', fontSize: '14px' }} title="Buscar por Producto">🔍</span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                  <span onClick={() => requestSort('product_name')} style={{ cursor: 'pointer', flex: 1, display: 'flex', alignItems: 'center', gap: '6px' }}>Producto {getSortIcon('product_name')}</span>
+                  <img src="/magnifier.svg" alt="Buscar" onClick={() => toggleSearchCol('product_name')} style={{ width: '14px', height: '14px', verticalAlign: 'middle', cursor: 'pointer' }} title="Buscar por Producto" />
                 </div>
                 {activeSearchCol === 'product_name' && (
                   <div style={{ marginTop: '6px' }}>
@@ -316,9 +317,9 @@ export default function TransactionsTable({
                 )}
               </th>
               <th style={{ ...thStyle, textAlign: 'right' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
-                  <span onClick={() => requestSort('amount')} style={{ cursor: 'pointer' }}>Monto {getSortIcon('amount')}</span>
-                  <span onClick={() => toggleSearchCol('amount')} style={{ cursor: 'pointer', fontSize: '14px' }} title="Buscar por Monto">🔍</span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
+                  <span onClick={() => requestSort('amount')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>Monto {getSortIcon('amount')}</span>
+                  <img src="/magnifier.svg" alt="Buscar" onClick={() => toggleSearchCol('amount')} style={{ width: '14px', height: '14px', verticalAlign: 'middle', cursor: 'pointer' }} title="Buscar por Monto" />
                 </div>
                 {activeSearchCol === 'amount' && (
                   <div style={{ marginTop: '6px', textAlign: 'left' }}>

@@ -1,21 +1,20 @@
 /**
  * @file ProjectTransactionsTable.jsx
  * @component ProjectTransactionsTable
- * @description Muestra el listado detallado de transacciones y movimientos de un proyecto con filtros, métricas y agrupación por pagador.
+ * @description Muestra el historial detallado de movimientos, costos e ingresos de un proyecto con filtros y métricas consolidadas.
  *
  * Funcionalidades Clave:
- * - Filtrado dinámico de movimientos por tipo (todos, costos o ingresos).
- * - Cálculo automático y visualización de métricas de costos, ingresos programados y total neto.
- * - Agrupamiento y resumen de montos por cada entidad pagadora o prestamista.
- * - Soporte para ordenamiento de columnas y diseño responsivo adaptado para dispositivos móviles.
+ * - Visualización de transacciones financieras con soporte para filtros de búsqueda por columna y ordenamiento.
+ * - Resumen agrupado por pagador mostrando pagos, cobros y diferencia neta.
+ * - Cálculo dinámico de costos totales, ingresos programados y balance general.
  *
- * @returns {JSX.Element} Vista de tabla con el listado de transacciones y métricas consolidadas.
+ * @returns {JSX.Element} Vista de tabla con el listado de movimientos y métricas consolidadas.
  *
  * @public:  ProjectTransactionsTable
  * @imports: react, prop-types, ../styles/styles
  */
 
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import {
   tableCardStyle,
@@ -64,20 +63,40 @@ export default function ProjectTransactionsTable({
   requestSort,
   getSortIcon,
 }) {
-  const [filtroMovimiento, setFiltroMovimiento] = React.useState('todos');
+  const [filtroMovimiento, setFiltroMovimiento] = useState('todos');
+  const [searchFilters, setSearchFilters] = useState({
+    date: '',
+    description: '',
+    payer_loaner_name: '',
+    product_name: '',
+    amount: '',
+  });
+  const [activeSearchCol, setActiveSearchCol] = useState(null);
+
+  const handleSearchChange = (col, val) => {
+    setSearchFilters((prev) => ({ ...prev, [col]: val }));
+  };
+
+  const toggleSearchCol = (col) => {
+    setActiveSearchCol((prev) => (prev === col ? null : col));
+  };
 
   const payerTotals = sortedData.reduce((acc, t) => {
     const name = t.payer_loaner_name || 'Sin Pagador';
     const val = Number(t.amount) || 0;
     if (!acc[name]) {
-      acc[name] = { total: 0, count: 0 };
+      acc[name] = { pagos: 0, cobros: 0, count: 0 };
     }
-    acc[name].total += val;
+    if (val > 0) {
+      acc[name].pagos += val;
+    } else if (val < 0) {
+      acc[name].cobros += Math.abs(val);
+    }
     acc[name].count += 1;
     return acc;
   }, {});
 
-  const payerEntries = Object.entries(payerTotals).sort((a, b) => Math.abs(b[1].total) - Math.abs(a[1].total));
+  const payerEntries = Object.entries(payerTotals).sort((a, b) => ((b[1].pagos - b[1].cobros)) - ((a[1].pagos - a[1].cobros)));
 
   /**
    * Helper para formatear valores a moneda (US Dollars) con 2 decimales.
@@ -103,15 +122,117 @@ export default function ProjectTransactionsTable({
 
   const sumaTotal = sumaCostos + sumaIngresos;
 
-  const filteredSortedData = sortedData.filter((t) => {
-    const val = Number(t.amount) || 0;
-    if (filtroMovimiento === 'costos') return val < 0;
-    if (filtroMovimiento === 'ingresos') return val > 0;
-    return true;
-  });
+  const filteredSortedData = useMemo(() => {
+    return sortedData.filter((t) => {
+      const val = Number(t.amount) || 0;
+      if (filtroMovimiento === 'costos' && val >= 0) return false;
+      if (filtroMovimiento === 'ingresos' && val <= 0) return false;
+
+      const dateMatch = String(t.date || '').toLowerCase().includes(searchFilters.date.toLowerCase());
+      const descMatch = String(t.description || '').toLowerCase().includes(searchFilters.description.toLowerCase());
+      const payerMatch = String(t.payer_loaner_name || '').toLowerCase().includes(searchFilters.payer_loaner_name.toLowerCase());
+      const productMatch = String(t.product_name || '').toLowerCase().includes(searchFilters.product_name.toLowerCase());
+      const amountStr = (t.amount >= 0 ? '+' : '') + (Number(t.amount) || 0).toFixed(2);
+      const amountMatch = String(t.amount).toLowerCase().includes(searchFilters.amount.toLowerCase()) || amountStr.toLowerCase().includes(searchFilters.amount.toLowerCase());
+
+      return dateMatch && descMatch && payerMatch && productMatch && amountMatch;
+    });
+  }, [sortedData, filtroMovimiento, searchFilters]);
 
   return (
     <div style={{ ...tableCardStyle, padding: isMobile ? '16px' : '24px' }}>
+      {/* Visualización agrupada por PAGADOR: PAGOS, COBROS y DIFERENCIA */}
+      {payerEntries.length > 0 && (
+        <div
+          style={{
+            marginBottom: '20px',
+            padding: '16px',
+            backgroundColor: '#f8fafc',
+            borderRadius: '8px',
+            border: '1px solid #e2e8f0',
+            width: '100%',
+            boxSizing: 'border-box',
+          }}
+        >
+          <span
+            style={{
+              fontSize: '12px',
+              fontWeight: '700',
+              color: '#475569',
+              textTransform: 'uppercase',
+              display: 'block',
+              marginBottom: '12px',
+            }}
+          >
+            Resumen por Pagador
+          </span>
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '12px',
+            }}
+          >
+            {payerEntries.map(([payerName, data]) => {
+              const diferencia = data.pagos - data.cobros;
+              return (
+                <div
+                  key={payerName}
+                  style={{
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '6px',
+                    padding: '12px 14px',
+                    minWidth: '220px',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', borderBottom: '1px solid #f1f5f9', paddingBottom: '4px' }}>
+                    <span
+                      style={{
+                        fontSize: '12px',
+                        fontWeight: '700',
+                        color: '#334155',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {payerName}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '10px',
+                        color: '#94a3b8',
+                        fontWeight: '600',
+                      }}
+                    >
+                      {data.count} {data.count === 1 ? 'mov.' : 'movs.'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
+                      <span style={{ color: '#64748b', fontWeight: '600' }}>PAGOS:</span>
+                      <span style={{ fontWeight: '700', color: '#588157' }}>+${fmt(data.pagos)}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
+                      <span style={{ color: '#64748b', fontWeight: '600' }}>COBROS:</span>
+                      <span style={{ fontWeight: '700', color: '#8d402a' }}>-${fmt(data.cobros)}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', borderTop: '1px dashed #e2e8f0', paddingTop: '4px', marginTop: '2px' }}>
+                      <span style={{ color: '#475569', fontWeight: '700' }}>DIFERENCIA:</span>
+                      <span style={{ fontWeight: '800', color: diferencia >= 0 ? '#588157' : '#8d402a' }}>
+                        {diferencia >= 0 ? '' : '-'}${fmt(Math.abs(diferencia))}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Encabezado: Título dinámico y bloque de tarjetas métricas */}
       <div
         style={{
@@ -188,88 +309,6 @@ export default function ProjectTransactionsTable({
             alignItems: 'center',
           }}
         >
-
-      {/* Visualización agrupada por PAGADOR */}
-      {payerEntries.length > 0 && (
-        <div
-          style={{
-            marginBottom: '20px',
-            padding: '16px',
-            backgroundColor: '#f8fafc',
-            borderRadius: '8px',
-            border: '1px solid #e2e8f0',
-          }}
-        >
-          <span
-            style={{
-              fontSize: '12px',
-              fontWeight: '700',
-              color: '#475569',
-              textTransform: 'uppercase',
-              display: 'block',
-              marginBottom: '12px',
-            }}
-          >
-            Monto por Pagador
-          </span>
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '12px',
-            }}
-          >
-            {payerEntries.map(([payerName, data]) => (
-              <div
-                key={payerName}
-                style={{
-                  backgroundColor: '#ffffff',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '6px',
-                  padding: '10px 14px',
-                  minWidth: '150px',
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
-                }}
-              >
-                <span
-                  style={{
-                    display: 'block',
-                    fontSize: '11px',
-                    fontWeight: '600',
-                    color: '#64748b',
-                    marginBottom: '4px',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {payerName}
-                </span>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                  <span
-                    style={{
-                      fontSize: '15px',
-                      fontWeight: '800',
-                      color: data.total >= 0 ? '#588157' : '#8d402a',
-                    }}
-                  >
-                    {data.total >= 0 ? '' : '-'}${fmt(Math.abs(data.total))}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: '10px',
-                      color: '#94a3b8',
-                      fontWeight: '600',
-                    }}
-                  >
-                    {data.count} {data.count === 1 ? 'mov.' : 'movs.'}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
           {/* Métrica 1: Costos (Suma de negativos) */}
           <div>
             <span
@@ -355,23 +394,105 @@ export default function ProjectTransactionsTable({
         >
           <thead>
             <tr>
-              <th style={thStyle} onClick={() => requestSort && requestSort('date')}>
-                Fecha {getSortIcon && getSortIcon('date')}
+              <th style={thStyle}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span onClick={() => requestSort('date')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', flex: 1 }}>
+                    Fecha {getSortIcon ? getSortIcon('date') : <img src="/defaultSort.svg" alt="sort" style={{ width: '12px', height: '12px' }} />}
+                  </span>
+                  <img src="/magnifier.svg" alt="Buscar" onClick={(e) => { e.stopPropagation(); toggleSearchCol('date'); }} style={{ width: '14px', height: '14px', verticalAlign: 'middle', cursor: 'pointer', marginLeft: '6px' }} title="Buscar por Fecha" />
+                </div>
+                {activeSearchCol === 'date' && (
+                  <div style={{ marginTop: '6px' }} onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="text"
+                      placeholder="Buscar fecha..."
+                      value={searchFilters.date}
+                      onChange={(e) => handleSearchChange('date', e.target.value)}
+                      style={{ width: '100%', padding: '4px 6px', fontSize: '11px', borderRadius: '4px', border: '1px solid #cbd5e1', outline: 'none' }}
+                      autoFocus
+                    />
+                  </div>
+                )}
               </th>
-              <th style={thStyle} onClick={() => requestSort && requestSort('description')}>
-                Descripción {getSortIcon && getSortIcon('description')}
+              <th style={thStyle}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span onClick={() => requestSort('description')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', flex: 1 }}>
+                    Descripción {getSortIcon ? getSortIcon('description') : <img src="/defaultSort.svg" alt="sort" style={{ width: '12px', height: '12px' }} />}
+                  </span>
+                  <img src="/magnifier.svg" alt="Buscar" onClick={(e) => { e.stopPropagation(); toggleSearchCol('description'); }} style={{ width: '14px', height: '14px', verticalAlign: 'middle', cursor: 'pointer', marginLeft: '6px' }} title="Buscar por Descripción" />
+                </div>
+                {activeSearchCol === 'description' && (
+                  <div style={{ marginTop: '6px' }} onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="text"
+                      placeholder="Buscar descripción..."
+                      value={searchFilters.description}
+                      onChange={(e) => handleSearchChange('description', e.target.value)}
+                      style={{ width: '100%', padding: '4px 6px', fontSize: '11px', borderRadius: '4px', border: '1px solid #cbd5e1', outline: 'none' }}
+                      autoFocus
+                    />
+                  </div>
+                )}
               </th>
-              <th style={thStyle} onClick={() => requestSort && requestSort('payer_loaner_name')}>
-                Pagador {getSortIcon && getSortIcon('payer_loaner_name')}
+              <th style={thStyle}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span onClick={() => requestSort('payer_loaner_name')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', flex: 1 }}>
+                    Pagador {getSortIcon ? getSortIcon('payer_loaner_name') : <img src="/defaultSort.svg" alt="sort" style={{ width: '12px', height: '12px' }} />}
+                  </span>
+                  <img src="/magnifier.svg" alt="Buscar" onClick={(e) => { e.stopPropagation(); toggleSearchCol('payer_loaner_name'); }} style={{ width: '14px', height: '14px', verticalAlign: 'middle', cursor: 'pointer', marginLeft: '6px' }} title="Buscar por Pagador" />
+                </div>
+                {activeSearchCol === 'payer_loaner_name' && (
+                  <div style={{ marginTop: '6px' }} onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="text"
+                      placeholder="Buscar pagador..."
+                      value={searchFilters.payer_loaner_name}
+                      onChange={(e) => handleSearchChange('payer_loaner_name', e.target.value)}
+                      style={{ width: '100%', padding: '4px 6px', fontSize: '11px', borderRadius: '4px', border: '1px solid #cbd5e1', outline: 'none' }}
+                      autoFocus
+                    />
+                  </div>
+                )}
               </th>
-              <th style={thStyle} onClick={() => requestSort && requestSort('product_name')}>
-                Producto {getSortIcon && getSortIcon('product_name')}
+              <th style={thStyle}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span onClick={() => requestSort('product_name')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', flex: 1 }}>
+                    Producto {getSortIcon ? getSortIcon('product_name') : <img src="/defaultSort.svg" alt="sort" style={{ width: '12px', height: '12px' }} />}
+                  </span>
+                  <img src="/magnifier.svg" alt="Buscar" onClick={(e) => { e.stopPropagation(); toggleSearchCol('product_name'); }} style={{ width: '14px', height: '14px', verticalAlign: 'middle', cursor: 'pointer', marginLeft: '6px' }} title="Buscar por Producto" />
+                </div>
+                {activeSearchCol === 'product_name' && (
+                  <div style={{ marginTop: '6px' }} onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="text"
+                      placeholder="Buscar producto..."
+                      value={searchFilters.product_name}
+                      onChange={(e) => handleSearchChange('product_name', e.target.value)}
+                      style={{ width: '100%', padding: '4px 6px', fontSize: '11px', borderRadius: '4px', border: '1px solid #cbd5e1', outline: 'none' }}
+                      autoFocus
+                    />
+                  </div>
+                )}
               </th>
-              <th
-                style={{ ...thStyle, textAlign: 'right' }}
-                onClick={() => requestSort && requestSort('amount')}
-              >
-                Monto {getSortIcon && getSortIcon('amount')}
+              <th style={{ ...thStyle, textAlign: 'right' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
+                  <span onClick={() => requestSort('amount')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    Monto {getSortIcon ? getSortIcon('amount') : <img src="/defaultSort.svg" alt="sort" style={{ width: '12px', height: '12px' }} />}
+                  </span>
+                  <img src="/magnifier.svg" alt="Buscar" onClick={(e) => { e.stopPropagation(); toggleSearchCol('amount'); }} style={{ width: '14px', height: '14px', verticalAlign: 'middle', cursor: 'pointer', marginLeft: '6px' }} title="Buscar por Monto" />
+                </div>
+                {activeSearchCol === 'amount' && (
+                  <div style={{ marginTop: '6px' }} onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="text"
+                      placeholder="Buscar monto..."
+                      value={searchFilters.amount}
+                      onChange={(e) => handleSearchChange('amount', e.target.value)}
+                      style={{ width: '100%', padding: '4px 6px', fontSize: '11px', borderRadius: '4px', border: '1px solid #cbd5e1', outline: 'none', textAlign: 'right' }}
+                      autoFocus
+                    />
+                  </div>
+                )}
               </th>
             </tr>
           </thead>

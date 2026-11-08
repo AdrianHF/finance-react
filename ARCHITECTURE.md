@@ -4,9 +4,13 @@
 ```
 FINANCE-REACT
 ├── public
+│   ├── ascSort.svg
 │   ├── cochinito.svg
+│   ├── defaultSort.svg
+│   ├── descSort.svg
 │   ├── favicon.svg
 │   ├── icons.svg
+│   ├── magnifier.svg
 │   └── money-svgrepo-com.svg
 ├── src
 │   ├── components
@@ -22,7 +26,7 @@ FINANCE-REACT
 │   ├── hooks
 │   │   ├── useDashboardData.js
 │   │   ├── useIsMobile.js
-│   │   ├── useSortConfig.js
+│   │   ├── useSortConfig.jsx
 │   │   └── useTransactionsData.js
 │   ├── styles
 │   │   └── styles.js
@@ -111,21 +115,20 @@ FINANCE-REACT
 // src/components/MobileNav.jsx
 ```
 
-### `src/components/ProjectTransactionsTable.jsx` (CONTEO DE LINEAS DE CODIGO: 435)
+### `src/components/ProjectTransactionsTable.jsx` (CONTEO DE LINEAS DE CODIGO: 556)
 
 ```jsx
 /**
  * @file ProjectTransactionsTable.jsx
  * @component ProjectTransactionsTable
- * @description Muestra el listado detallado de transacciones y movimientos de un proyecto con filtros, métricas y agrupación por pagador.
+ * @description Muestra el historial detallado de movimientos, costos e ingresos de un proyecto con filtros y métricas consolidadas.
  *
  * Funcionalidades Clave:
- * - Filtrado dinámico de movimientos por tipo (todos, costos o ingresos).
- * - Cálculo automático y visualización de métricas de costos, ingresos programados y total neto.
- * - Agrupamiento y resumen de montos por cada entidad pagadora o prestamista.
- * - Soporte para ordenamiento de columnas y diseño responsivo adaptado para dispositivos móviles.
+ * - Visualización de transacciones financieras con soporte para filtros de búsqueda por columna y ordenamiento.
+ * - Resumen agrupado por pagador mostrando pagos, cobros y diferencia neta.
+ * - Cálculo dinámico de costos totales, ingresos programados y balance general.
  *
- * @returns {JSX.Element} Vista de tabla con el listado de transacciones y métricas consolidadas.
+ * @returns {JSX.Element} Vista de tabla con el listado de movimientos y métricas consolidadas.
  *
  * @public:  ProjectTransactionsTable
  * @imports: react, prop-types, ../styles/styles
@@ -158,19 +161,20 @@ FINANCE-REACT
  */
 ```
 
-### `src/components/TransactionsTable.jsx` (CONTEO DE LINEAS DE CODIGO: 365)
+### `src/components/TransactionsTable.jsx` (CONTEO DE LINEAS DE CODIGO: 366)
 
 ```jsx
 /**
  * @file TransactionsTable.jsx
  * @component TransactionsTable
- * @description Tabla interactiva para visualizar y filtrar transacciones financieras con resumen de métricas mensuales.
+ * @description Tabla interactiva de transacciones financieras con métricas de resumen y filtros por columna.
  *
  * Funcionalidades Clave:
- * - Visualización de métricas financieras del mes (pagos, adeudos, acumulados e intereses).
- * - Filtrado en tiempo real por columna (fecha, descripción, bucket, producto y monto).
- * - Ordenamiento dinámico de transacciones con indicadores visuales.
- * - Diseño adaptativo (responsive) para dispositivos móviles y de escritorio.
+ * - Visualización de métricas mensuales (pagado, por pagar, adeudos y acumulados anteriores).
+ * - Soporte para sección exclusiva de intereses en la pestaña 'padre'.
+ * - Filtrado dinámico en tiempo real por cada columna de la tabla.
+ * - Ordenamiento interactivo de columnas mediante callbacks personalizados.
+ * - Diseño adaptable (responsive) para dispositivos móviles y de escritorio.
  *
  * @returns {JSX.Element} Elemento JSX que renderiza la tabla de transacciones y su cabecera de métricas.
  *
@@ -212,10 +216,24 @@ FINANCE-REACT
 // src/hooks/useIsMobile.js
 ```
 
-### `src/hooks/useSortConfig.js` (CONTEO DE LINEAS DE CODIGO: 59)
+### `src/hooks/useSortConfig.jsx` (CONTEO DE LINEAS DE CODIGO: 50)
 
-```javascript
-// src/hooks/useSortConfig.js
+```jsx
+/**
+ * @file useSortConfig.jsx
+ * @component useSortConfig
+ * @description Hook personalizado para gestionar el estado y la lógica de ordenamiento de tablas o listas.
+ *
+ * Funcionalidades Clave:
+ * - Alterna dinámicamente la dirección de ordenamiento entre ascendente, descendente y sin orden.
+ * - Mantiene el estado actual de la configuración de ordenamiento.
+ * - Genera el icono visual correspondiente según el estado de ordenamiento de cada columna.
+ *
+ * @returns {Object} Objeto con la configuración actual, la función para solicitar ordenamiento y el generador de iconos.
+ *
+ * @public:  useSortConfig
+ * @imports: react
+ */
 ```
 
 ### `src/hooks/useTransactionsData.js` (CONTEO DE LINEAS DE CODIGO: 474)
