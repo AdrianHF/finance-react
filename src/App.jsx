@@ -1,16 +1,15 @@
 /**
  * @file App.jsx
  * @component App
- * @description Componente raíz que orquesta la navegación, filtros globales y vistas principales de la aplicación Dineros.
+ * @description Componente raíz que gestiona el estado global de navegación, filtros y vistas adaptativas de la aplicación.
  *
  * Funcionalidades Clave:
- * - Gestiona el estado global de navegación entre pestañas y submenús.
- * - Administra filtros globales como el mes seleccionado y el modo de visualización histórico.
- * - Integra custom hooks para la carga y procesamiento centralizado de datos financieros.
- * - Proporciona diseño adaptativo (Responsive) alternando entre Sidebar y MobileNav.
- * - Orquesta el renderizado dinámico de tablas, resúmenes y el panel de control (Dashboard).
+ * - Orquestación de pestañas activas (Dashboard, personas y proyectos)
+ * - Gestión de filtros globales de fecha y modo de visualización histórico
+ * - Adaptación de diseño responsivo entre dispositivos móviles y escritorios
+ * - Integración de hooks personalizados para la carga de datos financieros
  *
- * @returns {JSX.Element} Estructura completa de la aplicación contenedora con vistas y navegación activas.
+ * @returns {JSX.Element} Estructura completa de la aplicación con navegación, cabecera y vistas dinámicas.
  *
  * @imports: react, ./config/constants, ./utils/dateUtils, ./styles/styles, ./hooks/useIsMobile, ./hooks/useSortConfig, ./hooks/useDashboardData, ./hooks/useTransactionsData, ./components/Sidebar, ./components/MobileNav, ./components/AppHeader, ./components/DashboardTab, ./components/TransactionsTable, ./components/ProjectsSummaryTable, ./components/ProjectTransactionsTable, ./index.css
  */
@@ -167,6 +166,7 @@ function App() {
                   onMontoDisponibleChange={setMontoDisponible}
                   requestSort={requestSort}
                   getSortIcon={getSortIcon}
+                  historicalData={dashboard.historicalData}
                 />
               )}
 

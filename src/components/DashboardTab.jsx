@@ -1,21 +1,22 @@
 /**
  * @file DashboardTab.jsx
  * @component DashboardTab
- * @description Muestra el resumen financiero mensual y la tabla detallada de pagos con calculadora de saldo disponible en tiempo real.
+ * @description Muestra el resumen financiero mensual, métricas clave y una tabla interactiva de productos y pagos.
  *
  * Funcionalidades Clave:
- * - Visualización de métricas financieras generales (Pagado, Por Pagar, Total Mensual).
- * - Calculadora interactiva para determinar el saldo faltante contra el monto disponible ingresado.
- * - Tabla detallada de productos con soporte para ordenamiento por columnas.
- * - Adaptabilidad de diseño responsivo para dispositivos móviles y de escritorio.
+ * - Renderiza un gráfico histórico y tarjetas con métricas de pagos (Pagado, Por Pagar, Total Mensual).
+ * - Incluye una calculadora interactiva en tiempo real para determinar el saldo faltante contra el monto disponible.
+ * - Muestra una tabla detallada con los estados de cuenta y opción de ordenamiento por columnas.
+ * - Adapta su diseño y distribución de forma responsiva para dispositivos móviles y de escritorio.
  *
- * @returns {JSX.Element} Vista del Dashboard del usuario.
+ * @returns {JSX.Element} Vista del Dashboard del usuario con métricas y tabla de pagos.
  *
  * @public:  DashboardTab
- * @imports: react, prop-types, ../styles/styles
+ * @imports: react, ./DashboardMonthlyChart, prop-types, ../styles/styles
  */
 
 import React from 'react';
+import DashboardMonthlyChart from './DashboardMonthlyChart';
 import PropTypes from 'prop-types';
 import {
   tableCardStyle,
@@ -60,6 +61,7 @@ export default function DashboardTab({
   onMontoDisponibleChange,
   requestSort,
   getSortIcon,
+  historicalData = [],
 }) {
   // Cálculo del faltante (garantiza un mínimo de 0 para evitar valores negativos)
   const faltante = Math.max(0, metricasFinancieras.porPagar - (parseFloat(montoDisponible) || 0));
@@ -68,7 +70,9 @@ export default function DashboardTab({
   const faltanteEsCero = metricasFinancieras.porPagar - (parseFloat(montoDisponible) || 0) <= 0;
 
   return (
-    <div style={{ ...tableCardStyle, padding: isMobile ? '16px' : '24px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <DashboardMonthlyChart historicalData={historicalData} isMobile={isMobile} />
+      <div style={{ ...tableCardStyle, padding: isMobile ? '16px' : '24px' }}>
       {/* Reset global para ocultar los spinners/flechas por defecto del input[type="number"] */}
       <style>{numberInputResetCSS}</style>
 
@@ -261,6 +265,7 @@ export default function DashboardTab({
           </tbody>
         </table>
       </div>
+    </div>
     </div>
   );
 }

@@ -15,6 +15,7 @@ FINANCE-REACT
 ├── src
 │   ├── components
 │   │   ├── AppHeader.jsx
+│   │   ├── DashboardMonthlyChart.jsx
 │   │   ├── DashboardTab.jsx
 │   │   ├── MobileNav.jsx
 │   │   ├── ProjectsSummaryTable.jsx
@@ -53,16 +54,15 @@ FINANCE-REACT
 /**
  * @file App.jsx
  * @component App
- * @description Componente raíz que orquesta la navegación, filtros globales y vistas principales de la aplicación Dineros.
+ * @description Componente raíz que gestiona el estado global de navegación, filtros y vistas adaptativas de la aplicación.
  *
  * Funcionalidades Clave:
- * - Gestiona el estado global de navegación entre pestañas y submenús.
- * - Administra filtros globales como el mes seleccionado y el modo de visualización histórico.
- * - Integra custom hooks para la carga y procesamiento centralizado de datos financieros.
- * - Proporciona diseño adaptativo (Responsive) alternando entre Sidebar y MobileNav.
- * - Orquesta el renderizado dinámico de tablas, resúmenes y el panel de control (Dashboard).
+ * - Orquestación de pestañas activas (Dashboard, personas y proyectos)
+ * - Gestión de filtros globales de fecha y modo de visualización histórico
+ * - Adaptación de diseño responsivo entre dispositivos móviles y escritorios
+ * - Integración de hooks personalizados para la carga de datos financieros
  *
- * @returns {JSX.Element} Estructura completa de la aplicación contenedora con vistas y navegación activas.
+ * @returns {JSX.Element} Estructura completa de la aplicación con navegación, cabecera y vistas dinámicas.
  *
  * @imports: react, ./config/constants, ./utils/dateUtils, ./styles/styles, ./hooks/useIsMobile, ./hooks/useSortConfig, ./hooks/useDashboardData, ./hooks/useTransactionsData, ./components/Sidebar, ./components/MobileNav, ./components/AppHeader, ./components/DashboardTab, ./components/TransactionsTable, ./components/ProjectsSummaryTable, ./components/ProjectTransactionsTable, ./index.css
  */
@@ -88,24 +88,46 @@ FINANCE-REACT
  */
 ```
 
-### `src/components/DashboardTab.jsx` (CONTEO DE LINEAS DE CODIGO: 266)
+### `src/components/DashboardMonthlyChart.jsx` (CONTEO DE LINEAS DE CODIGO: 412)
+
+```jsx
+/**
+ * @file DashboardMonthlyChart.jsx
+ * @component DashboardMonthlyChart
+ * @description Gráfico de líneas interactivo en SVG para visualizar el total mensual a pagar en el panel de control.
+ *
+ * Funcionalidades Clave:
+ * - Parseo robusto y seguro de montos monetarios desde diversos formatos de backend.
+ * - Ordenamiento cronológico inteligente de datos históricos (ISO, nombres de meses ES/EN).
+ * - Renderizado SVG responsivo con ejes, rejilla dinámica y área de ploteo adaptativa.
+ * - Tooltip interactivo y líneas guías (crosshair) al pasar el cursor sobre los puntos.
+ * - Agregación defensiva de múltiples filas por mes y soporte para diseño móvil.
+ *
+ * @returns {JSX.Element} Componente renderizado del gráfico mensual.
+ *
+ * @public:  DashboardMonthlyChart
+ * @imports: react, prop-types, ../styles/styles
+ */
+```
+
+### `src/components/DashboardTab.jsx` (CONTEO DE LINEAS DE CODIGO: 271)
 
 ```jsx
 /**
  * @file DashboardTab.jsx
  * @component DashboardTab
- * @description Muestra el resumen financiero mensual y la tabla detallada de pagos con calculadora de saldo disponible en tiempo real.
+ * @description Muestra el resumen financiero mensual, métricas clave y una tabla interactiva de productos y pagos.
  *
  * Funcionalidades Clave:
- * - Visualización de métricas financieras generales (Pagado, Por Pagar, Total Mensual).
- * - Calculadora interactiva para determinar el saldo faltante contra el monto disponible ingresado.
- * - Tabla detallada de productos con soporte para ordenamiento por columnas.
- * - Adaptabilidad de diseño responsivo para dispositivos móviles y de escritorio.
+ * - Renderiza un gráfico histórico y tarjetas con métricas de pagos (Pagado, Por Pagar, Total Mensual).
+ * - Incluye una calculadora interactiva en tiempo real para determinar el saldo faltante contra el monto disponible.
+ * - Muestra una tabla detallada con los estados de cuenta y opción de ordenamiento por columnas.
+ * - Adapta su diseño y distribución de forma responsiva para dispositivos móviles y de escritorio.
  *
- * @returns {JSX.Element} Vista del Dashboard del usuario.
+ * @returns {JSX.Element} Vista del Dashboard del usuario con métricas y tabla de pagos.
  *
  * @public:  DashboardTab
- * @imports: react, prop-types, ../styles/styles
+ * @imports: react, ./DashboardMonthlyChart, prop-types, ../styles/styles
  */
 ```
 
@@ -189,21 +211,21 @@ FINANCE-REACT
 // src/config/constants.js
 ```
 
-### `src/hooks/useDashboardData.js` (CONTEO DE LINEAS DE CODIGO: 206)
+### `src/hooks/useDashboardData.js` (CONTEO DE LINEAS DE CODIGO: 250)
 
 ```javascript
 /**
  * @file useDashboardData.js
  * @component useDashboardData
- * @description Hook personalizado para gestionar la obtención, filtrado y cálculo de métricas financieras del dashboard desde Supabase.
+ * @description Custom Hook que gestiona la obtención, cálculo de métricas y ordenamiento de datos financieros del dashboard desde Supabase.
  *
  * Funcionalidades Clave:
- * - Consulta productos y estados de cuenta filtrados por mes activo desde Supabase.
- * - Calcula automáticamente las métricas financieras (pagado, por pagar, total general).
- * - Aplica ordenamiento dinámico multi-columna a los datos de la tabla.
- * - Gestiona el estado de carga y optimiza peticiones según la pestaña activa.
+ * - Consulta productos y estados de cuenta desde Supabase según el mes y tab activo.
+ * - Calcula métricas financieras consolidadas (pagado, por pagar, total general).
+ * - Procesa y genera datos históricos de los últimos 12 meses para gráficas.
+ * - Aplica ordenamiento dinámico a los productos según criterios configurables.
  *
- * @returns {UseDashboardDataReturn} Objeto con los datos ordenados, métricas financieras y estado de carga.
+ * @returns {UseDashboardDataReturn} Objeto que contiene los datos ordenados, métricas financieras, histórico y estado de carga.
  *
  * @public:  useDashboardData
  * @imports: react, ../supabaseClient

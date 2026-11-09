@@ -1,81 +1,23 @@
 /**
  * @file useDashboardData.js
- * @component useDashboardData
- * @description Hook personalizado para gestionar la obtención, filtrado y cálculo de métricas financieras del dashboard desde Supabase.
- *
- * Funcionalidades Clave:
- * - Consulta productos y estados de cuenta filtrados por mes activo desde Supabase.
- * - Calcula automáticamente las métricas financieras (pagado, por pagar, total general).
- * - Aplica ordenamiento dinámico multi-columna a los datos de la tabla.
- * - Gestiona el estado de carga y optimiza peticiones según la pestaña activa.
- *
- * @returns {UseDashboardDataReturn} Objeto con los datos ordenados, métricas financieras y estado de carga.
- *
- * @public:  useDashboardData
- * @imports: react, ../supabaseClient
+ * @description Custom Hook que gestiona la obtención, cálculo de métricas y ordenamiento
+ *              de datos financieros del dashboard desde Supabase.
  */
 
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
 
 /**
- * Representación del estado de cuenta bancario asociado a un producto.
- * @typedef {Object} BankStatement
- * @property {string|number} bank_statement_id - ID único del estado de cuenta.
- * @property {string} payday_limit - Fecha límite de pago (formato YYYY-MM-DD).
- * @property {number|string} amount - Monto numérico o parseable a float.
- * @property {'PAGADO' | 'POR PAGAR' | 'FALTA CAPTURAR' | 'PRODUCTO INACTIVO'} status - Estado actual del pago.
- */
-
-/**
- * Estructura de un producto obtenido desde Supabase.
- * @typedef {Object} ProductItem
- * @property {string|number} product_id - ID único del producto.
- * @property {string} name - Nombre del producto financiero.
- * @property {BankStatement[]} [bank_statements] - Lista de estados de cuenta asociados.
- */
-
-/**
- * Configuración actual del ordenamiento de datos.
- * @typedef {Object} SortConfig
- * @property {'name' | 'amount' | 'payday_limit' | 'status' | null} key - Columna por la que se ordenará.
- * @property {'asc' | 'desc'} direction - Dirección del ordenamiento.
- */
-
-/**
- * Resumen consolidado de métricas financieras del Dashboard.
- * @typedef {Object} MetricasDashboard
- * @property {number} pagado - Suma de montos con estado 'PAGADO'.
- * @property {number} porPagar - Suma de montos con estado 'POR PAGAR' o 'FALTA CAPTURAR'.
- * @property {number} totalGeneral - Suma total general abonada y por abonar del periodo.
- */
-
-/**
- * Objeto de retorno expuesto por el Custom Hook `useDashboardData`.
- * @typedef {Object} UseDashboardDataReturn
- * @property {ProductItem[]} sortedData - Productos procesados y ordenados según `sortConfig`.
- * @property {MetricasDashboard} metricasFinancieras - Métricas totales (pagado, por pagar, total general).
- * @property {boolean} loading - Estado de carga de la petición asíncrona a Supabase.
- */
-
-/**
- * Custom Hook que encapsula toda la lógica de datos para la vista/tab "ADRIAN" (Dashboard):
- * 1. Consulta la lista de productos y sus estados de cuenta en Supabase para el mes seleccionado.
- * 2. Calcula automáticamente los totales financieros (pagado, por pagar, total general).
- * 3. Aplica ordenamiento a la tabla según la clave de propiedad y dirección especificada.
- *
- * @param {string} activeTab - Tab activo en la UI (solo ejecuta la petición si es igual a `'dashboard'`).
- * @param {string} selectedMonth - Mes en consulta formateado como `"YYYY-MM"`.
- * @param {SortConfig} sortConfig - Criterio actual de ordenamiento de la tabla.
- * @returns {UseDashboardDataReturn} Objeto que contiene los datos listos para renderizar y el estado de carga.
+ * @param {string} activeTab
+ * @param {string} selectedMonth - "YYYY-MM"
+ * @param {Object} sortConfig
  */
 export function useDashboardData(activeTab, selectedMonth, sortConfig) {
   const [productosData, setProductosData] = useState([]);
+  const [historicalData, setHistoricalData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // 1. Fetch de productos + bank_statements del mes seleccionado.
-  // Solo se ejecuta cuando el tab activo es "dashboard": los otros tabs
-  // no necesitan estos datos, así que evitamos pegarle a Supabase de más.
   useEffect(() => {
     if (activeTab !== 'dashboard') return;
 
@@ -86,6 +28,7 @@ export function useDashboardData(activeTab, selectedMonth, sortConfig) {
         const primerDiaMes = new Date(y, m - 1, 1).toISOString().split('T')[0];
         const ultimoDiaMes = new Date(y, m, 0).toISOString().split('T')[0];
 
+        // Query principal (tabla del dashboard)
         const { data, error } = await supabase
           .from('products')
           .select(`*, bank_statements!product(bank_statement_id, starting_period, ending_period, payday_limit, amount, status)`)
@@ -94,6 +37,51 @@ export function useDashboardData(activeTab, selectedMonth, sortConfig) {
 
         if (error) throw error;
         setProductosData(data || []);
+
+        // Histórico de los últimos 12 meses para la gráfica
+        const histMap = {};
+        const currDate = new Date(y, m - 1, 1);
+        const monthNames = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+        for (let i = 11; i >= 0; i--) {
+          const d = new Date(currDate.getFullYear(), currDate.getMonth() - i, 1);
+          const mStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+          const label = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+          histMap[mStr] = { month: mStr, label, total: 0 };
+        }
+
+        const startHistKey = Object.keys(histMap)[0];
+        const [shY, shM] = startHistKey.split('-').map(Number);
+        const firstHistDate = new Date(shY, shM - 1, 1).toISOString().split('T')[0];
+        const lastHistDate = new Date(y, m, 0).toISOString().split('T')[0];
+
+        const { data: histData, error: histError } = await supabase
+          .from('products')
+          .select(`*, bank_statements!product(bank_statement_id, payday_limit, amount, status, starting_period, ending_period)`)
+          .or(`payday_limit.gte.${firstHistDate},starting_period.gte.${firstHistDate}`, { foreignTable: 'bank_statements' })
+          .or(`payday_limit.lte.${lastHistDate},starting_period.lte.${lastHistDate}`, { foreignTable: 'bank_statements' });
+
+        if (!histError && histData) {
+          histData.forEach((prod) => {
+            if (!prod.bank_statements) return;
+            prod.bank_statements.forEach((st) => {
+              // ✅ FIX: agrupar SIEMPRE por payday_limit (fecha real de pago),
+              // coherente con la métrica "Por Pagar" y con `SELECT sum(amount) ... GROUP BY payday_limit`.
+              const checkDate = st.payday_limit;
+              if (!checkDate) return;
+
+              const stMonth = String(checkDate).substring(0, 7);
+              if (!histMap[stMonth]) return;
+
+              const amt = parseFloat(st.amount);
+              if (Number.isFinite(amt)) {
+                histMap[stMonth].total += amt;
+              }
+            });
+          });
+        }
+
+        setHistoricalData(Object.values(histMap));
       } catch (error) {
         console.error('Error al conectar con Supabase (Products):', error.message);
       } finally {
@@ -108,10 +96,13 @@ export function useDashboardData(activeTab, selectedMonth, sortConfig) {
   const metricasFinancieras = useMemo(() => {
     return productosData.reduce(
       (totales, item) => {
-        const statement = item.bank_statements && item.bank_statements[0];
-        if (statement && statement.amount) {
-          const monto = parseFloat(statement.amount);
-          const status = statement.status;
+        // Sumar TODOS los statements del mes, no solo el primero
+        const statements = item.bank_statements ?? [];
+        for (const st of statements) {
+          const monto = parseFloat(st.amount);
+          if (!Number.isFinite(monto)) continue;
+
+          const status = st.status;
           if (status === 'PAGADO') {
             totales.pagado += monto;
             totales.totalGeneral += monto;
@@ -126,81 +117,58 @@ export function useDashboardData(activeTab, selectedMonth, sortConfig) {
     );
   }, [productosData]);
 
-  // 3. Ordenamiento tipo Excel de la tabla (nombre, fecha límite, estado, monto).
+  // 3. Ordenamiento de la tabla
   const sortedData = useMemo(() => {
     const sortableItems = [...productosData];
-    if (sortConfig.key !== null) {
-      sortableItems.sort((a, b) => {
-        let aValue, bValue;
-        if (sortConfig.key === 'name') {
-          aValue = a.name || '';
-          bValue = b.name || '';
-        } else {
-          const aStatement = a.bank_statements && a.bank_statements[0];
-          const bStatement = b.bank_statements && b.bank_statements[0];
-          if (sortConfig.key === 'amount') {
-            aValue = aStatement && aStatement.amount ? parseFloat(aStatement.amount) : -1;
-            bValue = bStatement && bStatement.amount ? parseFloat(bStatement.amount) : -1;
-          } else if (sortConfig.key === 'starting_period') {
-            const aHas = aStatement && aStatement.starting_period;
-            const bHas = bStatement && bStatement.starting_period;
-            if (!aHas && !bHas) {
-              aValue = 0;
-              bValue = 0;
-            } else if (!aHas) {
-              aValue = sortConfig.direction === 'asc' ? '0000-01-01' : '9999-12-31';
-              bValue = bStatement.starting_period;
-            } else if (!bHas) {
-              aValue = aStatement.starting_period;
-              bValue = sortConfig.direction === 'asc' ? '0000-01-01' : '9999-12-31';
-            } else {
-              aValue = aStatement.starting_period;
-              bValue = bStatement.starting_period;
-            }
-          } else if (sortConfig.key === 'ending_period') {
-            const aHas = aStatement && aStatement.ending_period;
-            const bHas = bStatement && bStatement.ending_period;
-            if (!aHas && !bHas) {
-              aValue = 0;
-              bValue = 0;
-            } else if (!aHas) {
-              aValue = sortConfig.direction === 'asc' ? '0000-01-01' : '9999-12-31';
-              bValue = bStatement.ending_period;
-            } else if (!bHas) {
-              aValue = aStatement.ending_period;
-              bValue = sortConfig.direction === 'asc' ? '0000-01-01' : '9999-12-31';
-            } else {
-              aValue = aStatement.ending_period;
-              bValue = bStatement.ending_period;
-            }
-          } else if (sortConfig.key === 'payday_limit') {
-            const aHas = aStatement && aStatement.payday_limit;
-            const bHas = bStatement && bStatement.payday_limit;
-            if (!aHas && !bHas) {
-              aValue = 0;
-              bValue = 0;
-            } else if (!aHas) {
-              aValue = sortConfig.direction === 'asc' ? '0000-01-01' : '9999-12-31';
-              bValue = bStatement.payday_limit;
-            } else if (!bHas) {
-              aValue = aStatement.payday_limit;
-              bValue = sortConfig.direction === 'asc' ? '0000-01-01' : '9999-12-31';
-            } else {
-              aValue = aStatement.payday_limit;
-              bValue = bStatement.payday_limit;
-            }
-          } else if (sortConfig.key === 'status') {
-            aValue = aStatement ? aStatement.status : 'FALTA CAPTURAR';
-            bValue = bStatement ? bStatement.status : 'FALTA CAPTURAR';
-          }
+    if (sortConfig.key === null) return sortableItems;
+
+    sortableItems.sort((a, b) => {
+      let aValue, bValue;
+
+      if (sortConfig.key === 'name') {
+        aValue = a.name || '';
+        bValue = b.name || '';
+      } else {
+        const aStatement = a.bank_statements && a.bank_statements[0];
+        const bStatement = b.bank_statements && b.bank_statements[0];
+
+        if (sortConfig.key === 'amount') {
+          aValue = aStatement && aStatement.amount ? parseFloat(aStatement.amount) : -1;
+          bValue = bStatement && bStatement.amount ? parseFloat(bStatement.amount) : -1;
+        } else if (sortConfig.key === 'starting_period') {
+          const aHas = aStatement && aStatement.starting_period;
+          const bHas = bStatement && bStatement.starting_period;
+          if (!aHas && !bHas) { aValue = 0; bValue = 0; }
+          else if (!aHas) { aValue = sortConfig.direction === 'asc' ? '0000-01-01' : '9999-12-31'; bValue = bStatement.starting_period; }
+          else if (!bHas) { aValue = aStatement.starting_period; bValue = sortConfig.direction === 'asc' ? '0000-01-01' : '9999-12-31'; }
+          else { aValue = aStatement.starting_period; bValue = bStatement.starting_period; }
+        } else if (sortConfig.key === 'ending_period') {
+          const aHas = aStatement && aStatement.ending_period;
+          const bHas = bStatement && bStatement.ending_period;
+          if (!aHas && !bHas) { aValue = 0; bValue = 0; }
+          else if (!aHas) { aValue = sortConfig.direction === 'asc' ? '0000-01-01' : '9999-12-31'; bValue = bStatement.ending_period; }
+          else if (!bHas) { aValue = aStatement.ending_period; bValue = sortConfig.direction === 'asc' ? '0000-01-01' : '9999-12-31'; }
+          else { aValue = aStatement.ending_period; bValue = bStatement.ending_period; }
+        } else if (sortConfig.key === 'payday_limit') {
+          const aHas = aStatement && aStatement.payday_limit;
+          const bHas = bStatement && bStatement.payday_limit;
+          if (!aHas && !bHas) { aValue = 0; bValue = 0; }
+          else if (!aHas) { aValue = sortConfig.direction === 'asc' ? '0000-01-01' : '9999-12-31'; bValue = bStatement.payday_limit; }
+          else if (!bHas) { aValue = aStatement.payday_limit; bValue = sortConfig.direction === 'asc' ? '0000-01-01' : '9999-12-31'; }
+          else { aValue = aStatement.payday_limit; bValue = bStatement.payday_limit; }
+        } else if (sortConfig.key === 'status') {
+          aValue = aStatement ? aStatement.status : 'FALTA CAPTURAR';
+          bValue = bStatement ? bStatement.status : 'FALTA CAPTURAR';
         }
-        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
-        return 0;
-      });
-    }
+      }
+
+      if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+
     return sortableItems;
   }, [productosData, sortConfig]);
 
-  return { sortedData, metricasFinancieras, loading };
+  return { sortedData, metricasFinancieras, historicalData, loading };
 }
