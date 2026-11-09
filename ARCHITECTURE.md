@@ -157,10 +157,26 @@ FINANCE-REACT
  */
 ```
 
-### `src/components/ProjectsSummaryTable.jsx` (CONTEO DE LINEAS DE CODIGO: 162)
+### `src/components/ProjectsSummaryTable.jsx` (CONTEO DE LINEAS DE CODIGO: 206)
 
 ```jsx
-// src/components/ProjectsSummaryTable.jsx
+/**
+ * @file ProjectsSummaryTable.jsx
+ * @component ProjectsSummaryTable
+ * @description Renderiza una tabla resumen del progreso financiero e histórico de proyectos con barras de avance.
+ *
+ * Funcionalidades Clave:
+ * - Muestra el progreso visual de pagos y cuotas por cada proyecto mediante barras de avance.
+ * - Desglosa montos cobrados, montos restantes y deudas totales en formato de hoja de cálculo.
+ * - Incluye tooltips informativos para aclarar la diferencia entre pagos de usuario y cobros procesados.
+ * - Presenta un pie de tabla consolidado con el balance global de deudas, dinero recibido y saldo pendiente.
+ * - Adapta su diseño responsivo con scroll horizontal para visualización móvil.
+ *
+ * @returns {JSX.Element} Tabla de resumen financiero de proyectos estilizada.
+ *
+ * @public:  ProjectsSummaryTable
+ * @imports: react, prop-types, ../styles/styles
+ */
 ```
 
 ### `src/components/Sidebar.jsx` (CONTEO DE LINEAS DE CODIGO: 336)
@@ -211,24 +227,13 @@ FINANCE-REACT
 // src/config/constants.js
 ```
 
-### `src/hooks/useDashboardData.js` (CONTEO DE LINEAS DE CODIGO: 250)
+### `src/hooks/useDashboardData.js` (CONTEO DE LINEAS DE CODIGO: 174)
 
 ```javascript
 /**
  * @file useDashboardData.js
- * @component useDashboardData
- * @description Custom Hook que gestiona la obtención, cálculo de métricas y ordenamiento de datos financieros del dashboard desde Supabase.
- *
- * Funcionalidades Clave:
- * - Consulta productos y estados de cuenta desde Supabase según el mes y tab activo.
- * - Calcula métricas financieras consolidadas (pagado, por pagar, total general).
- * - Procesa y genera datos históricos de los últimos 12 meses para gráficas.
- * - Aplica ordenamiento dinámico a los productos según criterios configurables.
- *
- * @returns {UseDashboardDataReturn} Objeto que contiene los datos ordenados, métricas financieras, histórico y estado de carga.
- *
- * @public:  useDashboardData
- * @imports: react, ../supabaseClient
+ * @description Custom Hook que gestiona la obtención, cálculo de métricas y ordenamiento
+ *              de datos financieros del dashboard desde Supabase.
  */
 ```
 

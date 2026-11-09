@@ -1,4 +1,21 @@
-// src/components/ProjectsSummaryTable.jsx
+/**
+ * @file ProjectsSummaryTable.jsx
+ * @component ProjectsSummaryTable
+ * @description Renderiza una tabla resumen del progreso financiero e histórico de proyectos con barras de avance.
+ *
+ * Funcionalidades Clave:
+ * - Muestra el progreso visual de pagos y cuotas por cada proyecto mediante barras de avance.
+ * - Desglosa montos cobrados, montos restantes y deudas totales en formato de hoja de cálculo.
+ * - Incluye tooltips informativos para aclarar la diferencia entre pagos de usuario y cobros procesados.
+ * - Presenta un pie de tabla consolidado con el balance global de deudas, dinero recibido y saldo pendiente.
+ * - Adapta su diseño responsivo con scroll horizontal para visualización móvil.
+ *
+ * @returns {JSX.Element} Tabla de resumen financiero de proyectos estilizada.
+ *
+ * @public:  ProjectsSummaryTable
+ * @imports: react, prop-types, ../styles/styles
+ */
+
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -65,6 +82,7 @@ export default function ProjectsSummaryTable({ isMobile, resumenBuckets }) {
                     i
                   </span>
                 </th>
+                <th style={{ ...excelThStyle, textAlign: 'right' }}>MONTO RESTANTE</th>
                 <th style={{ ...excelThStyle, textAlign: 'right' }}>DEUDA TOTAL</th>
               </tr>
             </thead>
@@ -72,7 +90,7 @@ export default function ProjectsSummaryTable({ isMobile, resumenBuckets }) {
               {proyectos.length === 0 ? (
                 /* Estado vacío cuando no existen registros */
                 <tr>
-                  <td colSpan="3" style={{ ...excelTdStyle, textAlign: 'center', color: '#94a3b8', padding: '24px' }}>
+                  <td colSpan="4" style={{ ...excelTdStyle, textAlign: 'center', color: '#94a3b8', padding: '24px' }}>
                     No hay cobros de proyectos registrados.
                   </td>
                 </tr>
@@ -81,6 +99,7 @@ export default function ProjectsSummaryTable({ isMobile, resumenBuckets }) {
                 proyectos.map((proyecto) => {
                   // Cálculo porcentual del avance de cuotas del proyecto
                   const porcentaje = proyecto.totalCuotas > 0 ? (proyecto.cuotasCompletadas / proyecto.totalCuotas) * 100 : 0;
+                  const montoRestante = Math.max(0, (proyecto.montoTotalCobrado || 0) - (proyecto.montoCompletado || 0));
                   
                   return (
                     <tr key={proyecto.id} style={excelTrStyle}>
@@ -112,6 +131,11 @@ export default function ProjectsSummaryTable({ isMobile, resumenBuckets }) {
                         </div>
                       </td>
 
+                      {/* Monto Restante por Pagar del Proyecto */}
+                      <td style={{ ...excelTdStyle, textAlign: 'right', color: '#475569', fontWeight: '600' }}>
+                        ${fmt(montoRestante)}
+                      </td>
+
                       {/* Importe de Deuda Total del Proyecto */}
                       <td style={{ ...excelTdStyle, textAlign: 'right', color: '#475569', fontWeight: '600' }}>
                         ${fmt(proyecto.deudaTotal)}
@@ -126,19 +150,19 @@ export default function ProjectsSummaryTable({ isMobile, resumenBuckets }) {
             <tfoot style={{ borderTop: '2px solid #cbd5e1', fontWeight: '700' }}>
               {/* Total Deudas */}
               <tr style={{ backgroundColor: '#fdf2f2' }}>
-                <td colSpan="2" style={{ ...excelTdStyle, color: '#8d402a' }}>DEUDA TOTAL</td>
+                <td colSpan="3" style={{ ...excelTdStyle, color: '#8d402a' }}>DEUDA TOTAL</td>
                 <td style={{ ...excelTdStyle, textAlign: 'right', color: '#8d402a', fontWeight: '800' }}>${fmt(totalDeudaProyectos)}</td>
               </tr>
 
               {/* Total Ingresado / Recibido */}
               <tr style={{ backgroundColor: '#f0fdf4' }}>
-                <td colSpan="2" style={{ ...excelTdStyle, color: '#588157' }}>DINERO RECIBIDO</td>
+                <td colSpan="3" style={{ ...excelTdStyle, color: '#588157' }}>DINERO RECIBIDO</td>
                 <td style={{ ...excelTdStyle, textAlign: 'right', color: '#588157', fontWeight: '800' }}>${fmt(totalAportadoPersonal)}</td>
               </tr>
 
               {/* Saldo Restante Global por Liquidar */}
               <tr style={{ backgroundColor: '#f1f5f9', borderTop: '1px solid #94a3b8' }}>
-                <td colSpan="2" style={{ ...excelTdStyle, color: '#0f172a', fontSize: '13px', fontWeight: '800' }}>
+                <td colSpan="3" style={{ ...excelTdStyle, color: '#0f172a', fontSize: '13px', fontWeight: '800' }}>
                   MONTO RESTANTE POR PAGAR
                 </td>
                 <td
@@ -160,3 +184,23 @@ export default function ProjectsSummaryTable({ isMobile, resumenBuckets }) {
     </div>
   );
 }
+
+ProjectsSummaryTable.propTypes = {
+  isMobile: PropTypes.bool,
+  resumenBuckets: PropTypes.shape({
+    proyectos: PropTypes.arrayOf(
+      PropTypes.shape({
+        id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+        name: PropTypes.string.isRequired,
+        cuotasCompletadas: PropTypes.number.isRequired,
+        totalCuotas: PropTypes.number.isRequired,
+        montoCompletado: PropTypes.number.isRequired,
+        montoTotalCobrado: PropTypes.number.isRequired,
+        deudaTotal: PropTypes.number.isRequired,
+      })
+    ).isRequired,
+    totalDeudaProyectos: PropTypes.number.isRequired,
+    totalAportadoPersonal: PropTypes.number.isRequired,
+    restaPorPagarGlobal: PropTypes.number.isRequired,
+  }).isRequired,
+};
